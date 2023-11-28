@@ -49,7 +49,6 @@ def kalman_filter(pos_prev, mot_prev, cov_prev, pos_mes, mot_mes, mot_input, dt 
      
     return pos_est, mot_est, cov_est
 
-
 ## Our motion model is non linear.
 # It is ruled by the following laws :
     #   forward speed    : v = (mot_r + mot_l) / 2
