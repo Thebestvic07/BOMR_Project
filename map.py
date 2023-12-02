@@ -1,5 +1,4 @@
 #%%
-
 from A_star_alg import *
 
 import math
@@ -10,6 +9,7 @@ from matplotlib import colors
 from data import *
 from PIL import Image
 
+#seulement pour visuel de la map
 def create_empty_plot(max_x, max_y):
     """
     Helper function to create a figure of the desired dimensions & grid
@@ -76,15 +76,6 @@ def create_grid(world):
     
     return grid, start, goal
     
-def convert_path(path):
-    "convert the path given in as an array of size(n,2) as a list of Points"
-    list_points = list()
-    
-    for i in range(np.size(path,1)):
-        pt = Point(path[0][i], path[1][i])
-        list_points.append(pt)
-
-    return list_points
 
 def map_without_collision(grid, size_thym):
     "add half size of thymio to the obstacles to avoid collisions"
@@ -103,11 +94,21 @@ def map_without_collision(grid, size_thym):
 
     return map
 
+def convert_path(path):
+    "convert the path given in as an array of size(n,2) as a list of Points"
+    list_points = list()
+    
+    for i in range(np.size(path,1)):
+        pt = Point(path[0][i], path[1][i])
+        list_points.append(pt)
+
+    return list_points
+
 occupancy_grid = map_without_collision(grid, size_thym=2)
 
 fig, ax = create_empty_plot(max_x, max_y)
 # Displaying the map
-ax.imshow(occupancy_grid.transpose(), cmap=cmap)
+ax.imshow(grid.transpose(), cmap=cmap)
 plt.title("Map : free cells in white, occupied cells in red")
 
 
@@ -145,8 +146,40 @@ ax_astar.plot(path[0], path[1], marker="o", color = 'blue')
 ax_astar.scatter(start[0], start[1], marker="o", color = 'green', s=200)
 ax_astar.scatter(goal[0], goal[1], marker="o", color = 'purple', s=200)
 
+print(path)
 
 for i in range(path.shape[1]-1):
     print(path[0][i+1]-path[0][i], path[1][i+1]-path[1][i])
     
+def calculate_path(world, size_thym):
+    """calls all functions to calculate path
+       out: path given in a list of Points 
+    """
+
+    grid, start, goal = create_grid(world)
+    grid = map_without_collision(grid, size_thym)
+
+    # List of all coordinates in the grid
+    x,y = np.mgrid[0:max_x:1, 0:max_y:1]
+    pos = np.empty(x.shape + (2,))
+    pos[:, :, 0] = x; pos[:, :, 1] = y
+    pos = np.reshape(pos, (x.shape[0]*x.shape[1], 2))
+    coords = list([(int(x[0]), int(x[1])) for x in pos])
+
+    # Define the heuristic, here = distance to goal ignoring obstacles
+    h = np.linalg.norm(pos - goal, axis=-1)
+    h = dict(zip(coords, h))
+
+    # Run the A* algorithm
+    path, visitedNodes = A_Star(start, goal, h, coords, occupancy_grid, movement_type="8N")
+    path = np.array(path).reshape(-1, 2).transpose()
+
+    visitedNodes = np.array(visitedNodes).reshape(-1, 2).transpose()
+
+    path = convert_path(path)
+    return path
+
+
+
+
 # %%
