@@ -13,7 +13,7 @@ class Thymio:
         self.motors = Motors(0,0)
         self.leds = Lights([0,0,0])
 
-        self.situation = Robot(Point(0,0), 0)
+        self.location = Robot(Point(0,0), 0)
     
         self.start()
 
