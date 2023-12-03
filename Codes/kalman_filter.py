@@ -1,13 +1,14 @@
-from Codes.utils.data import *
+from utils.data import *
 import numpy as np
 
 class Kalman:
     # Constants
-    THYMIO_WIDTH = 10.0
+    THYMIO_WIDTH = 5.0
     TIMESTEP = 0.1
-    MOT_VAR = 5.0
-    POS_VAR = 1.0
-    DIR_VAR = 0.1
+
+    MOT_VAR = 6.25   # +- 5      --> sigma = 2.5 --> var = 6.25
+    POS_VAR = 0.25   # +- 1 case --> sigma = 0.5 --> var = 0.25
+    DIR_VAR = 0.01   # +- 5°     --> sigma = 2.5° --> sigma = 0.1 rad --> var = 0.01
     SPEEDCONV = 0.1 
 
     def __init__(self, initial_state: Robot) -> None:
@@ -20,13 +21,13 @@ class Kalman:
 
         # covariance matrices
         self.R = np.diag([Kalman.MOT_VAR, Kalman.MOT_VAR, Kalman.POS_VAR, Kalman.POS_VAR, Kalman.DIR_VAR])
-        self.Q = np.array([ [1  , 0  , self.dt/2, self.dt/2, self.dt/Kalman.THYMIO_WIDTH],    
-                            [0  , 1  , self.dt/2, self.dt/2, self.dt/Kalman.THYMIO_WIDTH],
-                            [self.dt/2, self.dt/2, 1  , 0  , 0  ],
-                            [self.dt/2, self.dt/2, 0  , 1  , 0  ],
-                            [self.dt/Kalman.THYMIO_WIDTH, self.dt/Kalman.THYMIO_WIDTH , 0  , 0  , 1  ] ]
+        self.Q = np.array([ [Kalman.SPEEDCONV, 0 , self.dt, self.dt, 0],    
+                            [0, Kalman.SPEEDCONV/Kalman.THYMIO_WIDTH, 0, 0, self.dt],
+                            [self.dt, 0, 1, 0, 0],
+                            [self.dt, 0, 0, 1, 0],
+                            [0, self.dt, 0, 0, 1]]
                         ) 
-        self.Q = np.diag([Kalman.SPEEDCONV * Kalman.MOT_VAR, Kalman.SPEEDCONV*Kalman.MOT_VAR/Kalman.THYMIO_WIDTH, 1, 1, 1])
+        #self.Q = np.diag([Kalman.SPEEDCONV * Kalman.MOT_VAR, Kalman.SPEEDCONV*Kalman.MOT_VAR/Kalman.THYMIO_WIDTH, 1, 1, 1])
                           
     def update_robot(self, robot, command, sensors, camera: bool = True) -> Robot:
         x = self.kalman_filter(
