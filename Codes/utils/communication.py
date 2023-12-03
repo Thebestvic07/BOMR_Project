@@ -70,6 +70,7 @@ class Thymio:
 
         
     def read_variables(self, data=None):
+    def read_variables(self, data = None):
         """
         Update sensor variables
         """

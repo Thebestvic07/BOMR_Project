@@ -33,7 +33,6 @@ class Robot:
     """ Object to caracterize the Thymio in space """
     position : Point
     direction : float       #angle from x direction (->) 
-    covariance : np.ndarray = field(default_factory=lambda: np.zeros(3))
 
     def copy(self):
         return Robot(self.position.copy(), self.direction, self.covariance.copy())
