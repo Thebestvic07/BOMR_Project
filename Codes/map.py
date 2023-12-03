@@ -13,7 +13,7 @@ import time
 
 start_time = time.time()
 
-
+GRAPH = True
 
 #seulement pour visuel de la map
 def create_empty_plot(max_x, max_y):
@@ -46,8 +46,8 @@ def create_empty_plot(max_x, max_y):
 
 
 #Creating the grid
-
-cmap = colors.ListedColormap(['white', 'red']) # Select the colors with which to display obstacles and free cells
+if GRAPH:
+    cmap = colors.ListedColormap(['white', 'red']) # Select the colors with which to display obstacles and free cells
 
 
 #import map from image and set start/goal
