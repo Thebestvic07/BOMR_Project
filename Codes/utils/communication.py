@@ -1,5 +1,5 @@
 from tdmclient import ClientAsync, aw
-from data import *
+from .data import *
 import numpy as np
 import time 
 
@@ -70,7 +70,9 @@ class Thymio:
 
         
     def read_variables(self, data = None):
-
+        """
+        Update sensor variables
+        """
         if self.node == None:
             raise "Thymio not connected"
 

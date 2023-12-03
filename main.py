@@ -3,17 +3,11 @@ from tdmclient import ClientAsync, aw
 import time
 
 from Codes.utils.data import *
-from Codes.utils.etalonnage import *
 from Codes.utils.communication import *
-from Codes.utils.import_all import *
-from obstacle_avoidance.obstacle_avoidance import *
-from obstacle_avoidance.motion_control import *
+from Codes.kalman_filter import *
+from Codes.motion_control import *
+from Codes.obstacle_avoidance import *
 
-
-from Kalman import *
-#redéfinir les noms des fichiers
-#from global_path_planning import *
-#from vision import *
 
 
 #VISION
