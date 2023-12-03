@@ -13,15 +13,8 @@ def _get_movements_8n():
     (up, down, left, right and the 4 diagonals).
     :return: list of movements with cost [(dx, dy, movement_cost)]
     """
-    s2 = math.sqrt(2)
-    return [(1, 0, 1.0),
-            (0, 1, 1.0),
-            (-1, 0, 1.0),
-            (0, -1, 1.0),
-            (1, 1, s2),
-            (-1, 1, s2),
-            (-1, -1, s2),
-            (1, -1, s2)]
+    
+    return 
 
 
 def reconstruct_path(cameFrom, current):
@@ -70,7 +63,15 @@ def A_Star(start, goal, h, coords, occupancy_grid, movement_type="8N"):
     # get the possible movements corresponding to the selected connectivity
     
     if movement_type == '8N':
-        movements = _get_movements_8n()
+        s2 = math.sqrt(2)
+        movements = [(1, 0, 1.0),
+                    (0, 1, 1.0),
+                    (-1, 0, 1.0),
+                    (0, -1, 1.0),
+                    (1, 1, s2),
+                    (-1, 1, s2),
+                    (-1, -1, s2),
+                    (1, -1, s2)]
     else:
         raise ValueError('Unknown movement')
     
