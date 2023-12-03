@@ -1,8 +1,7 @@
 
 import math
 import numpy as np
-import matplotlib.pyplot as plt
-from matplotlib import colors
+
 
 
 #functions taken from exercice session 5 and modifiied for non-square map 
