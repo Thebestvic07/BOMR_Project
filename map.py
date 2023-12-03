@@ -1,4 +1,4 @@
-#%%
+
 from A_star_alg import *
 
 import math
@@ -13,7 +13,7 @@ import time
 
 start_time = time.time()
 
-PLOT = true         #set to true to show map with matplot
+PLOT = True         #set to true to show map with matplot
 
 #seulement pour visuel de la map
 def create_empty_plot(max_x, max_y):
@@ -45,9 +45,7 @@ def create_empty_plot(max_x, max_y):
     return fig, ax
 
 
-#Creating the grid
-if PLOT:
-    cmap = colors.ListedColormap(['white', 'red']) # Select the colors with which to display obstacles and free cells
+
 
 
 #import map from image and set start/goal
@@ -112,11 +110,7 @@ def convert_path(path):
 
 occupancy_grid = map_without_collision(grid, size_thym=5)
 
-if PLOT:
-    fig, ax = create_empty_plot(max_x, max_y)
-    # Displaying the map
-    ax.imshow(grid.transpose(), cmap=cmap)
-    plt.title("Map : free cells in white, occupied cells in red")
+
 
 
 # -----------------------------------------
@@ -143,7 +137,13 @@ path = np.array(path).reshape(-1, 2).transpose()
 
 visitedNodes = np.array(visitedNodes).reshape(-1, 2).transpose()
 
+#Creating the grid
 if PLOT:
+    cmap = colors.ListedColormap(['white', 'red']) # Select the colors with which to display obstacles and free cells
+    fig, ax = create_empty_plot(max_x, max_y)
+    # Displaying the map
+    ax.imshow(grid.transpose(), cmap=cmap)
+    plt.title("Map : free cells in white, occupied cells in red")
     # # Displaying the map
     fig_astar, ax_astar = create_empty_plot(max_x, max_y)
     ax_astar.imshow(occupancy_grid.transpose(), cmap=cmap)
@@ -190,4 +190,4 @@ def calculate_path(world, size_thym):
 
 print("--- %s seconds ---" % (time.time() - start_time))
 
-# %%
+
