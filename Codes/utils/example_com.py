@@ -10,6 +10,7 @@ thymio.set_variable(Motors(50,50))
 time.sleep(1)
 thymio.set_variable(Lights([32,0,0]))
 
+
 thymio.read_variables()
 print("sensors : ", thymio.sensors)
 print("motors : ", thymio.motors)
