@@ -1,26 +1,13 @@
 
 import math
 import numpy as np
+import matplotlib.pyplot as plt
+from matplotlib import colors
 
 
+#functions taken from exercice session 5 and modifiied for non-square map 
+# and only for diagonal movements
 
-#functions taken from exercice session 5 and modifiied for non-square map
-
-def _get_movements_8n():
-    """
-    Get all possible 8-connectivity movements. Equivalent to get_movements_in_radius(1)
-    (up, down, left, right and the 4 diagonals).
-    :return: list of movements with cost [(dx, dy, movement_cost)]
-    """
-    s2 = math.sqrt(2)
-    return [(1, 0, 1.0),
-            (0, 1, 1.0),
-            (-1, 0, 1.0),
-            (0, -1, 1.0),
-            (1, 1, s2),
-            (-1, 1, s2),
-            (-1, -1, s2),
-            (1, -1, s2)]
 
 
 def reconstruct_path(cameFrom, current):
@@ -39,7 +26,7 @@ def reconstruct_path(cameFrom, current):
         current=cameFrom[current]
     return total_path
 
-def A_Star(start, goal, h, coords, occupancy_grid, movement_type="8N"):
+def A_Star(start, goal, h, coords, occupancy_grid):
     """
     A* for 2D occupancy grid. Finds a path from start to goal.
     h is the heuristic function. h(n) estimates the cost to reach goal from node n.
@@ -68,10 +55,17 @@ def A_Star(start, goal, h, coords, occupancy_grid, movement_type="8N"):
     
     # get the possible movements corresponding to the selected connectivity
     
-    if movement_type == '8N':
-        movements = _get_movements_8n()
-    else:
-        raise ValueError('Unknown movement')
+    #set movement as 8 possibilities
+    s2 = math.sqrt(2)
+    movements = [(1, 0, 1.0),
+                (0, 1, 1.0),
+                (-1, 0, 1.0),
+                (0, -1, 1.0),
+                (1, 1, s2),
+                (-1, 1, s2),
+                (-1, -1, s2),
+                (1, -1, s2)]
+    
     
     # --------------------------------------------------------------------------------------------
     # A* Algorithm implementation - feel free to change the structure / use another pseudo-code
