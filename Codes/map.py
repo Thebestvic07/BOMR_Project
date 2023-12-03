@@ -62,21 +62,21 @@ start = (19,7)
 
 
 
-def create_grid(world):
+def create_grid(env):
     "Create the grid with obstacles from the environment"
     max_x = 0
     max_y = 0
-    for corners in world.map.corners:
+    for corners in env.map.corners:
         if corners.x > max_x:
             max_x = corners.x
         if corners.y > max_y:
             max_y = corners.y
     
-    goal = (world.goal.x, world.goal.y) #set goal and start as tupples
-    start = (world.start.x, world.start.y)
+    goal = (env.goal.x, env.goal.y) #set goal and start as tupples
+    start = (env.robot.position.x, env.robot.position.y)
 
     grid = np.zeros((max_x, max_y)) 
-    for obs in world.map.obstacles:
+    for obs in env.map.obstacles:
         for pos in obs.summits:
             grid[pos.x][pos.y] = 1       #set obstacles as 1 in array
     
@@ -158,12 +158,12 @@ print(path)
 # for i in range(path.shape[1]-1):
 #     print(path[0][i+1]-path[0][i], path[1][i+1]-path[1][i])
     
-def calculate_path(world, size_thym):
+def calculate_path(env, size_thym):
     """calls all functions to calculate path
        out: path given in a list of Points 
     """
 
-    grid, start, goal = create_grid(world)
+    grid, start, goal = create_grid(env)
     grid = map_without_collision(grid, size_thym)
 
     # List of all coordinates in the grid
