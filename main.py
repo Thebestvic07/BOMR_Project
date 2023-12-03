@@ -6,12 +6,12 @@ from Codes.utils.data import *
 from Codes.utils.etalonnage import *
 from Codes.utils.communication import *
 from Codes.utils.import_all import *
-from obstacle_avoidance.obstacle_avoidance import *
-from obstacle_avoidance.motion_control import *
+from Codes.utils.obstacle_avoidance.obstacle_avoidance import *
+from Codes.utils.obstacle_avoidance.motion_control import *
 
 
 
-from Kalman import *
+from Codes.utils.kalman_filter import *
 #redéfinir les noms des fichiers
 #from global_path_planning import *
 #from vision import *
