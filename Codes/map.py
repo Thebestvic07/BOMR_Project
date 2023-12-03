@@ -6,14 +6,14 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib import colors
 
-from data import *
+from utils.data import *
 from PIL import Image
 import time
 
 
 start_time = time.time()
 
-GRAPH = True
+PLOT = False        #plot map
 
 #seulement pour visuel de la map
 def create_empty_plot(max_x, max_y):
@@ -46,7 +46,7 @@ def create_empty_plot(max_x, max_y):
 
 
 #Creating the grid
-if GRAPH:
+if PLOT:
     cmap = colors.ListedColormap(['white', 'red']) # Select the colors with which to display obstacles and free cells
 
 
@@ -111,11 +111,11 @@ def convert_path(path):
     return list_points
 
 occupancy_grid = map_without_collision(grid, size_thym=2)
-
-fig, ax = create_empty_plot(max_x, max_y)
-# Displaying the map
-ax.imshow(grid.transpose(), cmap=cmap)
-plt.title("Map : free cells in white, occupied cells in red")
+if PLOT:
+    fig, ax = create_empty_plot(max_x, max_y)
+    # Displaying the map
+    ax.imshow(grid.transpose(), cmap=cmap)
+    plt.title("Map : free cells in white, occupied cells in red")
 
 
 # -----------------------------------------
@@ -142,15 +142,16 @@ path = np.array(path).reshape(-1, 2).transpose()
 
 visitedNodes = np.array(visitedNodes).reshape(-1, 2).transpose()
 
-# # Displaying the map
-fig_astar, ax_astar = create_empty_plot(max_x, max_y)
-ax_astar.imshow(occupancy_grid.transpose(), cmap=cmap)
+if PLOT:
+    # # Displaying the map
+    fig_astar, ax_astar = create_empty_plot(max_x, max_y)
+    ax_astar.imshow(occupancy_grid.transpose(), cmap=cmap)
 
-# Plot the best path found and the list of visited nodes
-ax_astar.scatter(visitedNodes[0], visitedNodes[1], marker="o", color = 'orange')
-ax_astar.plot(path[0], path[1], marker="o", color = 'blue')
-ax_astar.scatter(start[0], start[1], marker="o", color = 'green', s=200)
-ax_astar.scatter(goal[0], goal[1], marker="o", color = 'purple', s=200)
+    # Plot the best path found and the list of visited nodes
+    ax_astar.scatter(visitedNodes[0], visitedNodes[1], marker="o", color = 'orange')
+    ax_astar.plot(path[0], path[1], marker="o", color = 'blue')
+    ax_astar.scatter(start[0], start[1], marker="o", color = 'green', s=200)
+    ax_astar.scatter(goal[0], goal[1], marker="o", color = 'purple', s=200)
 
 print(path)
 
