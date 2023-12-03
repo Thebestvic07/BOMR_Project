@@ -8,6 +8,12 @@ from matplotlib import colors
 
 from data import *
 from PIL import Image
+import time
+
+
+start_time = time.time()
+
+
 
 #seulement pour visuel de la map
 def create_empty_plot(max_x, max_y):
@@ -136,7 +142,7 @@ path = np.array(path).reshape(-1, 2).transpose()
 
 visitedNodes = np.array(visitedNodes).reshape(-1, 2).transpose()
 
-# Displaying the map
+# # Displaying the map
 fig_astar, ax_astar = create_empty_plot(max_x, max_y)
 ax_astar.imshow(occupancy_grid.transpose(), cmap=cmap)
 
@@ -148,8 +154,8 @@ ax_astar.scatter(goal[0], goal[1], marker="o", color = 'purple', s=200)
 
 print(path)
 
-for i in range(path.shape[1]-1):
-    print(path[0][i+1]-path[0][i], path[1][i+1]-path[1][i])
+# for i in range(path.shape[1]-1):
+#     print(path[0][i+1]-path[0][i], path[1][i+1]-path[1][i])
     
 def calculate_path(world, size_thym):
     """calls all functions to calculate path
@@ -180,6 +186,6 @@ def calculate_path(world, size_thym):
     return path
 
 
-
+print("--- %s seconds ---" % (time.time() - start_time))
 
 # %%
