@@ -136,7 +136,7 @@ h = np.linalg.norm(pos - goal, axis=-1)
 h = dict(zip(coords, h))
 
 # Run the A* algorithm
-path, visitedNodes = A_Star(start, goal, h, coords, occupancy_grid, movement_type="8N")
+path, visitedNodes = A_Star(start, goal, h, coords, occupancy_grid)
 path = np.array(path).reshape(-1, 2).transpose()
 
 
@@ -177,7 +177,7 @@ def calculate_path(world, size_thym):
     h = dict(zip(coords, h))
 
     # Run the A* algorithm
-    path, visitedNodes = A_Star(start, goal, h, coords, occupancy_grid, movement_type="8N")
+    path, visitedNodes = A_Star(start, goal, h, coords, occupancy_grid)
     path = np.array(path).reshape(-1, 2).transpose()
 
     visitedNodes = np.array(visitedNodes).reshape(-1, 2).transpose()
