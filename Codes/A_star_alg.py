@@ -8,11 +8,6 @@ from matplotlib import colors
 #functions taken from exercice session 5 and modifiied for non-square map 
 # and only for diagonal movements
 
-#functions taken from exercice session 5 and modifiied for non-square map 
-# and only for diagonal movements
-
-
-
 def reconstruct_path(cameFrom, current):
     """
     Recurrently reconstructs the path from start node to the current node
@@ -57,17 +52,6 @@ def A_Star(start, goal, h, coords, occupancy_grid):
         raise Exception('Goal node is not traversable')
     
     # get the possible movements corresponding to the selected connectivity
-    
-    #set movement as 8 possibilities
-    s2 = math.sqrt(2)
-    movements = [(1, 0, 1.0),
-                (0, 1, 1.0),
-                (-1, 0, 1.0),
-                (0, -1, 1.0),
-                (1, 1, s2),
-                (-1, 1, s2),
-                (-1, -1, s2),
-                (1, -1, s2)]
     
     #set movement as 8 possibilities
     s2 = math.sqrt(2)
