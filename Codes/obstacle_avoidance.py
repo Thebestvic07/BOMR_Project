@@ -22,9 +22,8 @@ def obstacle_avoidance(prox_horizontal, speed0=200):
 
     elif obstacle_detected:
         diffDelta=0.5*prox_horizontal[0]+0.75*prox_horizontal[1]-1*prox_horizontal[2]-0.75*prox_horizontal[3]-0.5*prox_horizontal[4]
-        motor_L= obstGain*diffDelta
-        motor_R= -obstGain*diffDelta
-        return obstacle_detected, motor_L , motor_R
+        motor_changes= obstGain*diffDelta
+        return obstacle_detected, motor_changes
     
     else:
        print("error in obstacle avoidance") 
