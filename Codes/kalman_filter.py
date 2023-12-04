@@ -26,19 +26,7 @@ class Kalman:
                             [self.dt, 0, 1, 0, 0],
                             [self.dt, 0, 0, 1, 0],
                             [0, self.dt, 0, 0, 1]]
-                        ) 
-        #self.Q = np.diag([Kalman.SPEEDCONV * Kalman.MOT_VAR, Kalman.SPEEDCONV*Kalman.MOT_VAR/Kalman.THYMIO_WIDTH, 1, 1, 1])
-                          
-    def update_robot(self, robot, command, sensors, camera: bool = True) -> Robot:
-        x = self.kalman_filter(
-            np.array([command.left, command.right]).ravel(),
-            np.array([sensors.motor.left, sensors.motor.right]).ravel(),
-            np.array([robot.position.x, robot.position.y, robot.angle]).ravel(),
-            camera,
-        )
-        result = x.ravel()
-        return Robot(position=Point(x=result[0], y=result[1]), direction=result[2])
-  
+                        )   
 
     def kalman_filter(self, mot_input, mot_mes, pos_mes = None):
         """
