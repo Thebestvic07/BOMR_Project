@@ -55,8 +55,8 @@ def create_grid(env):
 
     grid = np.zeros((max_x, max_y)) 
     for obs in env.map.obstacles:
-        for pos in obs.summits:
-            grid[pos.x][pos.y] = 1       #set obstacles as 1 in array
+        
+        grid[obs.x][obs.y] = 1       #set obstacles as 1 in array
     
     return grid, start, goal
     
@@ -96,7 +96,7 @@ def calculate_path(env, size_thym, PLOT=False):
 
     grid, start, goal = create_grid(env)
     occupancy_grid = map_without_collision(grid, size_thym)
-
+    max_x, max_y = grid.shape[0], grid.shape[1] # Size of the map
     # List of all coordinates in the grid
     x,y = np.mgrid[0:max_x:1, 0:max_y:1]
     pos = np.empty(x.shape + (2,))
