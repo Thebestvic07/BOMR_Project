@@ -47,6 +47,12 @@ class Motors:
     right : int = 0
 
 @dataclass
+class Target:
+    """ Object to describe Thymio's target motor speeds """
+    left  : int = 0
+    right : int = 0
+
+@dataclass
 class Sensors:
     """ Object to regroup Thymio's prox & ground sensors """
     prox   : list[int]   # 7 int list

@@ -68,9 +68,9 @@ def map_without_collision(grid, size_thym):
     for i in range(max_x):          
         for j in range(max_y):
             if  grid[i,j]:                   
-                for x in range(size_thym + 1):      #set positions too close to obstacle as obstacles 
+                for x in range(int(2*np.ceil(size_thym/2)+1)):      #set positions too close to obstacle as obstacles 
                     x -= int(np.ceil(size_thym/2))
-                    for y in range(size_thym + 1):
+                    for y in range(int(2*np.ceil(size_thym/2)+1)):
                         y -= int(np.ceil(size_thym/2))
                         if (0 <= i+x < max_x) and (0 <= j+y < max_y): #check if position is in grid
                             map[i+x,j+y] = 1

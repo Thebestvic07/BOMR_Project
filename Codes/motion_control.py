@@ -13,9 +13,13 @@ def compute_velocity(position, goal, Kp_angle, Kp_dist, thymio_angle, final_goal
     # to avoid problems with the atan2 function
     angle_error = (angle_error + 180) % 360 - 180
 
+    #computes v_orientation, v_position so it doesn't get calculated twice
+    v_position = Kp_dist * (180-abs(angle_error))
+    v_orientation = Kp_angle * angle_error
+
     #v_orientation + v_position
-    motor_L = (Kp_dist * (180-abs(angle_error))) + Kp_angle * angle_error
-    motor_R = (Kp_dist * (180-abs(angle_error))) - Kp_angle * angle_error
+    motor_L = v_orientation + v_position
+    motor_R = -v_orientation + v_position
 
   else:
     motor_L = 0
@@ -36,8 +40,7 @@ def controller(distance, distance_total, slowing_distance = 100):
     Kp_dist = 0.8
 
   elif distance > slowing_distance and (distance_total - distance) > slowing_distance:
-    Kp_angle = 1
+    Kp_angle = 1.2
     Kp_dist = 1
 
   return Kp_angle, Kp_dist
-

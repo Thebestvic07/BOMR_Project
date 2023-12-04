@@ -12,6 +12,8 @@ class Thymio:
         self.sensors = Sensors([0,0,0,0,0,0,0],[0,0])
         self.motors = Motors(0,0)
         self.leds = Lights([0,0,0])
+        self.target = Target(0,0)
+
 
         self.location = Robot(Point(0,0), 0)
     
@@ -87,11 +89,16 @@ class Thymio:
             self.node.var["motor.left.speed"],
             self.node.var["motor.right.speed"]
         )
+
+        self.target = Target(
+            self.node.var["motor.left.target"],
+            self.node.var["motor.right.target"]
+        )
     
         self.leds = Lights(self.node.var["leds.top"])
 
         if data != None :
-            data.append([self.sensors, self.motors, self.leds])
+            data.append([self.sensors, self.motors, self.target, self.leds])
 
 
     def get_position(self):
