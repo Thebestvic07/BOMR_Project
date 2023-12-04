@@ -1,12 +1,13 @@
 
-from A_star_alg import *
+
 
 import math
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib import colors
 
-from utils.data import *
+from .utils.data import *
+from .A_star_alg import *
 from PIL import Image
 import time
 
