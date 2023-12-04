@@ -1,4 +1,4 @@
-#%%
+
 from A_star_alg import *
 
 import math
@@ -11,11 +11,7 @@ from PIL import Image
 import time
 
 
-start_time = time.time()
-
-PLOT = False        #plot map
-
-#seulement pour visuel de la map
+#only to plot
 def create_empty_plot(max_x, max_y):
     """
     Helper function to create a figure of the desired dimensions & grid
@@ -43,24 +39,6 @@ def create_empty_plot(max_x, max_y):
     ax.grid(True)
     
     return fig, ax
-
-
-#Creating the grid
-if PLOT:
-    cmap = colors.ListedColormap(['white', 'red']) # Select the colors with which to display obstacles and free cells
-
-
-#import map from image and set start/goal
-im = Image.open('b.png', 'r')
-im = im.convert('L')
-grid = np.array(im)
-grid = (grid !=255)*1
-max_x, max_y = grid.shape[0], grid.shape[1] # Size of the map
-
-goal = (1,7)
-start = (19,7)
-
-
 
 def create_grid(env):
     "Create the grid with obstacles from the environment"
@@ -110,61 +88,14 @@ def convert_path(path):
 
     return list_points
 
-occupancy_grid = map_without_collision(grid, size_thym=2)
-if PLOT:
-    fig, ax = create_empty_plot(max_x, max_y)
-    # Displaying the map
-    ax.imshow(grid.transpose(), cmap=cmap)
-    plt.title("Map : free cells in white, occupied cells in red")
 
-
-# -----------------------------------------
-# DO NOT EDIT THIS PORTION OF CODE - 
-# EXECUTION AND PLOTTING OF THE ALGORITHM
-# -----------------------------------------
-    
-    
-# List of all coordinates in the grid
-x,y = np.mgrid[0:max_x:1, 0:max_y:1]
-pos = np.empty(x.shape + (2,))
-pos[:, :, 0] = x; pos[:, :, 1] = y
-pos = np.reshape(pos, (x.shape[0]*x.shape[1], 2))
-coords = list([(int(x[0]), int(x[1])) for x in pos])
-
-# Define the heuristic, here = distance to goal ignoring obstacles
-h = np.linalg.norm(pos - goal, axis=-1)
-h = dict(zip(coords, h))
-
-# Run the A* algorithm
-path, visitedNodes = A_Star(start, goal, h, coords, occupancy_grid, movement_type="8N")
-path = np.array(path).reshape(-1, 2).transpose()
-
-
-visitedNodes = np.array(visitedNodes).reshape(-1, 2).transpose()
-
-if PLOT:
-    # # Displaying the map
-    fig_astar, ax_astar = create_empty_plot(max_x, max_y)
-    ax_astar.imshow(occupancy_grid.transpose(), cmap=cmap)
-
-    # Plot the best path found and the list of visited nodes
-    ax_astar.scatter(visitedNodes[0], visitedNodes[1], marker="o", color = 'orange')
-    ax_astar.plot(path[0], path[1], marker="o", color = 'blue')
-    ax_astar.scatter(start[0], start[1], marker="o", color = 'green', s=200)
-    ax_astar.scatter(goal[0], goal[1], marker="o", color = 'purple', s=200)
-
-print(path)
-
-# for i in range(path.shape[1]-1):
-#     print(path[0][i+1]-path[0][i], path[1][i+1]-path[1][i])
-    
-def calculate_path(env, size_thym):
+def calculate_path(env, size_thym, PLOT=False):
     """calls all functions to calculate path
        out: path given in a list of Points 
     """
 
     grid, start, goal = create_grid(env)
-    grid = map_without_collision(grid, size_thym)
+    occupancy_grid = map_without_collision(grid, size_thym)
 
     # List of all coordinates in the grid
     x,y = np.mgrid[0:max_x:1, 0:max_y:1]
@@ -178,15 +109,29 @@ def calculate_path(env, size_thym):
     h = dict(zip(coords, h))
 
     # Run the A* algorithm
-    path, visitedNodes = A_Star(start, goal, h, coords, occupancy_grid, movement_type="8N")
+    path, visitedNodes = A_Star(start, goal, h, coords, occupancy_grid)
     path = np.array(path).reshape(-1, 2).transpose()
 
     visitedNodes = np.array(visitedNodes).reshape(-1, 2).transpose()
 
     path = convert_path(path)
+
+    if PLOT:
+        cmap = colors.ListedColormap(['white', 'red']) # Select the colors with which to display obstacles and free cells
+
+        fig, ax = create_empty_plot(max_x, max_y)
+        # Displaying the map
+        ax.imshow(grid.transpose(), cmap=cmap)
+        plt.title("Map : free cells in white, occupied cells in red")
+        # # Displaying the map
+        fig_astar, ax_astar = create_empty_plot(max_x, max_y)
+        ax_astar.imshow(occupancy_grid.transpose(), cmap=cmap)
+
+        # Plot the best path found and the list of visited nodes
+        ax_astar.scatter(visitedNodes[0], visitedNodes[1], marker="o", color = 'orange')
+        ax_astar.plot(path[0], path[1], marker="o", color = 'blue')
+        ax_astar.scatter(start[0], start[1], marker="o", color = 'green', s=200)
+        ax_astar.scatter(goal[0], goal[1], marker="o", color = 'purple', s=200)
+
     return path
 
-
-print("--- %s seconds ---" % (time.time() - start_time))
-
-# %%
