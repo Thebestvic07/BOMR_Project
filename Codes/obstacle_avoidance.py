@@ -5,12 +5,13 @@
 import numpy as np
 
 
-def obstacle_avoidance(prox_horizontal, speed0=200):
+def obstacle_avoidance(prox_horizontal):
 
-    speedGain = 2     # gain used with ground gradient
-             # gains used with front proximity sensors 0..4
-    obstGain = 0.05    # speed gain used with obstacle avoidance
-    obstThr=1000 #detection of box
+    obstThr=1500 #detection of box
+    
+    addLeft = 0
+    addRight = 0
+    weight=[50,75,-100,-75,-50]
 
     obstacle_detected=False
 
@@ -20,10 +21,13 @@ def obstacle_avoidance(prox_horizontal, speed0=200):
     if not(obstacle_detected):
         return obstacle_detected,0,0
 
+    #this part is inspired from the potential field navigation excercise in session 4
     elif obstacle_detected:
-        diffDelta=0.5*prox_horizontal[0]+0.75*prox_horizontal[1]-1*prox_horizontal[2]-0.75*prox_horizontal[3]-0.5*prox_horizontal[4]
-        motor_changes= obstGain*diffDelta
-        return obstacle_detected, motor_changes
+        for i in range(5):
+            addLeft += prox_horizontal[i] * Delta[i]//100
+            addRight += prox_horizontal[i] * Delta[4 - i]//100
+        
+        return obstacle_detected, addLeft , addRight
     
     else:
        print("error in obstacle avoidance") 
