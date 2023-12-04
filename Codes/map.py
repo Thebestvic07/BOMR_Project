@@ -55,7 +55,6 @@ def create_grid(env):
 
     grid = np.zeros((max_x, max_y)) 
     for obs in env.map.obstacles:
-        
         grid[obs.x][obs.y] = 1       #set obstacles as 1 in array
     
     return grid, start, goal
