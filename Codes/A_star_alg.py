@@ -8,8 +8,6 @@ from matplotlib import colors
 #functions taken from exercice session 5 and modifiied for non-square map 
 # and only for diagonal movements
 
-
-
 def reconstruct_path(cameFrom, current):
     """
     Recurrently reconstructs the path from start node to the current node

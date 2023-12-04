@@ -1,5 +1,5 @@
 from tdmclient import ClientAsync, aw
-from data import *
+from .data import *
 import numpy as np
 import time 
 
@@ -13,7 +13,7 @@ class Thymio:
         self.motors = Motors(0,0)
         self.leds = Lights([0,0,0])
 
-        self.situation = Robot(Point(0,0), 0)
+        self.location = Robot(Point(0,0), 0)
     
         self.start()
 
@@ -69,7 +69,6 @@ class Thymio:
         self.read_variables()
 
         
-    def read_variables(self, data=None):
     def read_variables(self, data = None):
         """
         Update sensor variables
