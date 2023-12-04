@@ -30,32 +30,4 @@ def obstacle_avoidance(prox_horizontal):
         return obstacle_detected, addLeft , addRight
     
     else:
-       print("error in obstacle avoidance") 
-
-
-       """     obstSpeedGain = [6, 4, -2, -6, -8]
-    obstacle_detected=False
-    obstThr=1500 #detection of box
-
-    obstSpeedGain_np = np.array(obstSpeedGain)
-
-    if any(value > obstThr for value in prox_horizontal):
-        obstacle_detected=True
-
-        
-    if not(obstacle_detected):
-        return obstacle_detected,0,0
-
-    elif obstacle_detected:
-        spLeft = np.sum(prox_horizontal * obstSpeedGain_np // 100)
-        spRight= np.sum(prox_horizontal[::-1] * obstSpeedGain_np // 100)
-
-    # motor control
-        motor_L = speed0 + spLeft
-        motor_R = speed0 + spRight
-        return obstacle_detected, motor_L , motor_R
-    
-    else:
        print("error in obstacle avoidance")
-
- """
