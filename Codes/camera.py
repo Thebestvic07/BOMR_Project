@@ -75,6 +75,9 @@ def apply_grid(image, grid_resolution):
     obstacles = []
     internal_map = [[0 for _ in range(y_cells)] for _ in range(x_cells)]
 
+    obstacles = []
+
+
     new_image = list(range(y_cells))
     final_image = list(range(x_cells))
 
@@ -106,9 +109,7 @@ def apply_grid(image, grid_resolution):
 
         if y!=0:
             final_image = np.vstack((final_image,new_image[y]))
-    
-    map = Map([Point(0,0), Point(width,0), Point(width,height), Point(0,height)], obstacles)
-
+    map = Map([Point(0,0), Point(width,0), Point(width, height), Point(0,height)], obstacles)
     return final_image, map
 
 
@@ -163,9 +164,9 @@ def center_in_grid(arucos, pos, grid_resolution):
 def get_goal_pos(arucos, grid_resolution):
     if len(arucos) !=0:
         for i in range(len(arucos)):
-            if arucos[i][2] == 99:
-                x = int(arucos[i][0]/grid_resolution)
-                y = int(arucos[i][1]/grid_resolution)
+            if arucos[i][2] == 0:
+                x = int(arucos[i][0])
+                y = int(arucos[i][1])
                 return (x, y)
             else:
                 return (0, 0)
