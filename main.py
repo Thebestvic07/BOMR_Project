@@ -4,6 +4,7 @@ from tdmclient import ClientAsync, aw
 import time
 import cv2 as cv
 import threading
+import keyboard
 
 from Codes.utils.data import *
 from Codes.utils.communication import *
@@ -31,7 +32,12 @@ def run_camera(mes_pos : Robot, mes_goal: Point):
     Function that updates the global Mes_Robot variable with camera data every 0.1 seconds
 
     '''
-    cap = cv2.VideoCapture(0)
+    cap = cv2.VideoCapture(1)
+    grid_resolution = get_dist_grid(get_arucos(cap.read()[1])[1])
+
+    last_known_goal_pos = (0, 0)
+    arucos = get_arucos(cap.read()[1])[1]
+    width, height = set_param_frame(arucos)
 
     while True:
         if cap.isOpened() == False:
@@ -44,12 +50,19 @@ def run_camera(mes_pos : Robot, mes_goal: Point):
             grid_resolution = get_dist_grid(arucos)
             '''
             frame, arucos, robot_pos, angle = show_robot(frame, grid_resolution)
-            goal_pos = get_goal_pos(arucos, grid_resolution)
+            goal_position = get_goal_pos(arucos, grid_resolution)
+
+            if robot_pos != None :
+                robot_position = tuple(round(pos/grid_resolution) for pos in robot_pos)
+            else:
+                robot_position = (None,None)
+            
+            goal_pos = tuple(round(pos/grid_resolution) for pos in goal_position)
 
             if goal_pos != (0, 0):
                 mes_goal = Point(goal_pos[0], goal_pos[1])
 
-            mes_pos.update(Robot(Point(robot_pos[0], robot_pos[1]), angle))
+            mes_pos.update(Robot(Point(robot_position[0], robot_position[1]), angle))
             mes_goal.update(Point(goal_pos[0], goal_pos[1]))
             
 
