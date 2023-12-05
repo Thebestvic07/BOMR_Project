@@ -2,7 +2,7 @@ import numpy as np
 import cv2
 import math 
 import time
-from .utils.data import *
+from utils.data import *
 
 
 def is_black_cell(image):
@@ -242,6 +242,76 @@ def show_robot(frame, grid_resolution):
 
     return frame, arucos, robot_pos, angle
 
+def get_corners(arucos):
+    pos1, pos2, pos3, pos4 = (0, 0), (0, 0), (0, 0), (0, 0)
+    if len(arucos) !=0:
+        for i in range(len(arucos)):
+            if arucos[i][2] == 0:
+                pos1 = (arucos[i][0], arucos[i][1])
+            if arucos[i][2] == 1:
+                pos2 = (arucos[i][0], arucos[i][1])
+            if arucos[i][2] == 2:
+                pos3 = (arucos[i][0], arucos[i][1])
+            if arucos[i][2] == 3:
+                pos4 = (arucos[i][0], arucos[i][1])
+        return pos1, pos2, pos3, pos4       
+    else:
+        return (0, 0), (0, 0), (0, 0), (0, 0)
+    
+def get_dist_side_aruco(arucos):
+    if len(arucos) !=0:
+        for i in range(len(arucos)):
+            if arucos[i][2] == 0:
+                x1, y1 = arucos[i][3][0][0], arucos[i][3][0][1]
+                x2, y2 = arucos[i][3][1][0], arucos[i][3][1][1]
+                dist = math.sqrt((x2-x1)**2 + (y2-y1)**2)
+                return dist
+    else:
+        return 0
+    
+def get_dist_height_circuit(arucos):
+    if len(arucos) !=0:
+        for i in range(len(arucos)):
+            if arucos[i][2] == 0:
+                for j in range(len(arucos)):
+                    if arucos[j][2] == 3:
+                        x1, y1 = arucos[i][0], arucos[i][1]
+                        x2, y2 = arucos[j][0], arucos[j][1]
+                        dist = math.sqrt((x2-x1)**2 + (y2-y1)**2)
+                        return dist
+    else:
+        return 0
+    
+def get_dist_width_circuit(arucos):
+    if len(arucos) !=0:
+        for i in range(len(arucos)):
+            if arucos[i][2] == 0:
+                for j in range(len(arucos)):
+                    if arucos[j][2] == 1:
+                        x1, y1 = arucos[i][0], arucos[i][1]
+                        x2, y2 = arucos[j][0], arucos[j][1]
+                        dist = math.sqrt((x2-x1)**2 + (y2-y1)**2)
+                        return dist
+    else:
+        return 0
+    
+def projected_image(frame, arucos):
+    pos1, pos2, pos3, pos4 = get_corners(arucos)
+    dist_aruco = int(get_dist_side_aruco(arucos))
+    width, height = 0, 0
+    if dist_aruco != 0:
+        width = int(get_dist_width_circuit(arucos)/dist_aruco) + 1
+        height = int(get_dist_height_circuit(arucos)/dist_aruco) + 1
+        width, height = width*dist_aruco, height*dist_aruco
+    if width != 0 and height != 0:
+        if pos1 != (0,0) and pos2 != (0,0) and pos3 != (0,0) and pos4 != (0,0):
+            pts1 = np.float32([pos1, pos2, pos3, pos4])
+            pts2 = np.float32([[0,0],[width,0],[width,height],[0,height]])
+            matrix = cv2.getPerspectiveTransform(pts1,pts2)
+            result = cv2.warpPerspective(frame,matrix,(width,height))
+            return result
+    else:
+        return frame
 
 def apply_grid_to_camera(grid_resolution):
 
@@ -267,6 +337,7 @@ def apply_grid_to_camera(grid_resolution):
 
     return map
 
+'''
 cap = cv2.VideoCapture(0)
 
 grid_resolution = 25
@@ -300,3 +371,15 @@ while cap.isOpened():
 
 cv2.destroyAllWindows()
 cap.release()
+'''
+
+image = cv2.imread('perspect.png')
+
+frame, arucos = get_arucos(image)
+
+frame = projected_image(image, arucos)
+
+cv2.imshow("Video Stream", frame)
+
+cv2.waitKey(0)
+cv2.destroyAllWindows()

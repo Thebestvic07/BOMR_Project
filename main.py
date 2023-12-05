@@ -80,7 +80,7 @@ if __name__ == "__main__":
 
     # Init map
     map = Map([], [], None)
-    fram, builtmap = apply_grid_to_camera(GRID_RES)
+    frame, builtmap = apply_grid_to_camera(GRID_RES)
     map.update(builtmap, frame)
 
     # Init variables
