@@ -33,11 +33,10 @@ def run_camera(mes_pos : Robot, mes_goal: Point, grid_res=DEFAULT_GRID_RES):
 
     '''
     cap = cv2.VideoCapture(1)
-    grid_resolution = get_dist_grid(get_arucos(cap.read()[1])[1])
 
-    last_known_goal_pos = (0, 0)
     arucos = get_arucos(cap.read()[1])[1]
-    width, height = set_param_frame(arucos)
+    grid_resolution = get_dist_grid(arucos)
+    grid_res = grid_resolution if grid_resolution != None else grid_res
 
     while True:
         if cap.isOpened() == False:
@@ -53,20 +52,20 @@ def run_camera(mes_pos : Robot, mes_goal: Point, grid_res=DEFAULT_GRID_RES):
 
 
             if robot_pos != None :
-                robot_position = tuple(round(pos/grid_res) for pos in robot_pos)
+                robot_pos = Point(round(robot_pos[0]/grid_res), round(robot_pos[1]/grid_res))
+                mes_pos.update(Robot(robot_pos, angle, True))
+            else:
+                mes_pos.update(Robot(mes_pos.position, mes_pos.direction, False))
             
             
-            goal_pos = tuple(round(pos/grid_resolution) for pos in goal_position)
+            goal_pos = tuple(round(pos/grid_resolution) for pos in goal_pos)    
             if goal_pos != (0, 0):
-                mes_goal = Point(goal_pos[0], goal_pos[1])
-
-            mes_pos.update(Robot(Point(robot_position[0], robot_position[1]), angle))
-            mes_goal.update(Point(goal_pos[0], goal_pos[1]))
+                mes_goal.update(Point(goal_pos[0], goal_pos[1]))
             
 
             cv2.imshow("Video Stream", frame)
 
-            print(f'Robot position: {robot_position} and angle: {angle}')
+            print(f'Robot position: {robot_pos} and angle: {angle}')
             print(f'Goal position: {goal_pos}')
             
         key = cv2.waitKey(1) & 0xFF
@@ -101,11 +100,11 @@ if __name__ == "__main__":
     map.update(builtmap, frame)
 
     # Init variables
-    Mes_car = Robot(Point(0,0), 0)
-    Mes_goal = Point(0,0)
-    env = Environment(Mes_car, map, Mes_goal)
-    input = Motors(0,0)
-    path = []
+    Mes_car = Robot(Point(0,0), 0)  # Mes_car = measured car
+    Mes_goal = Point(0,0)           # Mes_goal = measured goal
+    env = Environment(Mes_car, map, Mes_goal)       # env = estimated environment (updated with Kalman)
+    input = Motors(0,0)             # input = motors command
+    path = []                       # path = list of checkpoints to reach
 
     # Launch Threads
     camera_thread = threading.Thread(target=run_camera, args=(Mes_car, Mes_goal, grid_res), daemon=True)
@@ -113,6 +112,14 @@ if __name__ == "__main__":
 
     thymio_thread = threading.Thread(target=update_thymio, args=(thymio,), daemon=True)
     thymio_thread.start()
+
+    # Wait for camera to find Thymio
+    time.sleep(3)
+    while True:
+        if Mes_car.found:
+            break
+        print("Waiting for camera to find Thymio...")
+        time.sleep(0.1)
 
     # Init Kalman filter
     kalman = Kalman(Mes_car)
@@ -137,6 +144,7 @@ if __name__ == "__main__":
         
         # Compute path if needed
         if GLOBAL_PLANNING:
+            print("Planning...")
             path = calculate_path(env, SIZE_THYM, False)
             GLOBAL_PLANNING = False
 
@@ -153,11 +161,13 @@ if __name__ == "__main__":
 
         if dist_to_checkpoint >= LOST_TRESH:
             # If lost, recompute path on next iteration
+            print("Lost !")
             GLOBAL_PLANNING = True
             continue
 
         if dist_to_checkpoint <= REACH_TRESH:
             # If sufficiently close to checkpoint, remove it from path and go to next one 
+            print("Checkpoint reached !")
             path.pop(0) if len(path) > 1 else print("Path finished !")
 
         # Check if goal reached

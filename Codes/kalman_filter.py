@@ -29,14 +29,14 @@ class Kalman:
                             [0, self.dt, 0, 0, 1]]
                         )   
 
-    def kalman_filter(self, mot_input, mot_mes, pos_mes = None, dt = None):
+    def kalman_filter(self, mot_input : Motors, mot_mes : Motors, pos_mes : Robot, dt = None):
         """
         This function implement an EKF that estimates the current state 
         For this it uses the camera & motor speed measurement, the motor input and the previous state
         
         param mot_input        : input motor speed (Motor object)    
         param mot_mes          : measured motor speed (Motor object)
-        param pos_mes          : measured position via camera (Robot object) (default = None)
+        param pos_mes          : measured position via camera (Robot object)
         param dt               : timestep (default = TIMESTEP of Kalman class)
         
         return mot_est         : new a posteriori motor speed estimation
@@ -53,7 +53,7 @@ class Kalman:
         a_priori_cov      = G @ self.cov @ G.T + self.Q
 
         ## Check if we have a camera measurement
-        if pos_mes == None:     # y = [S_mot_l, S_mot_r] = C @ [v, w, x, y, theta]
+        if pos_mes.found == False:     # y = [S_mot_l, S_mot_r] = C @ [v, w, x, y, theta]
             state_meas  = np.array([mot_mes.left, mot_mes.right])
 
             C = np.zeros((2,5))

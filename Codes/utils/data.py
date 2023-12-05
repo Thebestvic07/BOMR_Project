@@ -38,6 +38,7 @@ class Robot:
     """ Object to caracterize the Thymio in space """
     position : Point
     direction : float       #angle from x direction (->) 
+    found : field(default=False, repr = False)  # False if can't see the robot
 
     def copy(self):
         return Robot(self.position.copy(), self.direction, self.covariance.copy())
