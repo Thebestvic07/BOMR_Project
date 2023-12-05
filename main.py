@@ -68,7 +68,7 @@ def run_camera(mes_pos : Robot, mes_goal: Point):
 
             cv2.imshow("Video Stream", frame)
 
-            print(f'Robot position: {robot_pos} and angle: {angle}')
+            print(f'Robot position: {robot_position} and angle: {angle}')
             print(f'Goal position: {goal_pos}')
             
         key = cv2.waitKey(1) & 0xFF
