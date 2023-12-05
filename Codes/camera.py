@@ -368,9 +368,8 @@ def apply_grid_to_camera(grid_resolution):
 #     goal_pos = get_goal_pos(arucos, grid_resolution)
 
 #     if robot_pos != None :
-#         robot_position = tuple(round(pos/grid_resolution) for pos in robot_pos)
-#     else:
-#         robot_position = (None,None)
+#         robot_pos = tuple(round(pos/grid_resolution) for pos in robot_pos)
+
     
 #     goal_position = tuple(round(pos/grid_resolution) for pos in last_known_goal_pos)
     
@@ -383,8 +382,8 @@ def apply_grid_to_camera(grid_resolution):
 
 
 #     cv2.imshow("Video Stream", projected_frame)
-#     print("Robot position: ", type(robot_position))
-#     print("Goal position: ", type(goal_position))
+#     print("Robot position: ", robot_pos)
+#     print("Goal position: ", goal_position)
     
 #     key = cv2.waitKey(1) & 0xFF
 #     if key == ord("q"):
