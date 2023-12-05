@@ -16,13 +16,22 @@ class Point:
     
     def copy(self):
         return Point(self.x, self.y)
-
+    
+    def update(self, newPoint):
+        self.x = newPoint.x
+        self.y = newPoint.y
 
 @dataclass
 class Map:
     """ Object to caracterize a map """
     corners : list[Point]
     obstacles : list[Point]
+    frame : field(default=None, repr=False)     # frame of the map (for display)
+
+    def update(self, newMap, frame=None):
+        self.corners = newMap.corners
+        self.obstacles = newMap.obstacles
+        self.frame = frame
 
 @dataclass
 class Robot:
@@ -33,11 +42,10 @@ class Robot:
     def copy(self):
         return Robot(self.position.copy(), self.direction, self.covariance.copy())
     
-    def update(self, new):
-        for key, value in new.items():
-            if hasattr(self, key):
-                setattr(self, key, value)
-
+    def update(self, newRobot):
+        self.position = newRobot.position
+        self.direction = newRobot.direction
+        
 @dataclass
 class Environment:
     """ Object to caracterize the full environment """
@@ -45,11 +53,20 @@ class Environment:
     map   : Map
     goal  : Point
 
+    def update(self, newEnv):
+        self.robot = newEnv.robot
+        self.map = newEnv.map
+        self.goal = newEnv.goal
+
 @dataclass
 class Motors:
     """ Object to describe Thymio's motor speeds """
     left  : int = 0
     right : int = 0
+
+    def update(self, newMotors):
+        self.left = newMotors.left
+        self.right = newMotors.right
 
 
 @dataclass

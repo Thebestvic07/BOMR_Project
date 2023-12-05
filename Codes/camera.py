@@ -109,6 +109,7 @@ def apply_grid(image, grid_resolution):
 
         if y!=0:
             final_image = np.vstack((final_image,new_image[y]))
+
     map = Map([Point(0,0), Point(width,0), Point(width, height), Point(0,height)], obstacles)
     return final_image, map
 
