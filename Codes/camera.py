@@ -72,6 +72,7 @@ def apply_grid(image, grid_resolution):
 
     #creat a 2d list of grid cells
     map = [[0 for _ in range(y_cells)] for _ in range(x_cells)]
+    obstacles = []
     internal_map = [[0 for _ in range(y_cells)] for _ in range(x_cells)]
 
     obstacles = []
@@ -265,7 +266,6 @@ def apply_grid_to_camera(grid_resolution):
 
     return map
 
-'''
 cap = cv2.VideoCapture(0)
 
 grid_resolution = 25
@@ -277,7 +277,7 @@ while cap.isOpened():
     robot_pos = (0, 0)
 
     frame = cap.read()[1]
-
+    
     frame, arucos, robot_pos, angle = show_robot(frame, grid_resolution)
     goal_pos = get_goal_pos(arucos, grid_resolution)
 
@@ -288,10 +288,10 @@ while cap.isOpened():
         print('Goal reached')
         break
 
-    cv2.imshow("Videa Stream", frame)
+    cv2.imshow("Video Stream", frame)
 
-    print(f'Robot position: {robot_pos} and angle: {angle}')
-    print(f'Goal position: {goal_pos}')
+    #print(f'Robot position: {robot_pos} and angle: {angle}')
+    #print(f'Goal position: {goal_pos}')
     
     key = cv2.waitKey(1) & 0xFF
     if key == ord("q"):
@@ -299,4 +299,3 @@ while cap.isOpened():
 
 cv2.destroyAllWindows()
 cap.release()
-'''

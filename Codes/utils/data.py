@@ -17,10 +17,6 @@ class Point:
     def copy(self):
         return Point(self.x, self.y)
 
-@dataclass
-class Obstacle:
-    """ Object to caracterize an obstacle by its summits """
-    summits : list[Point]
 
 @dataclass
 class Map:
