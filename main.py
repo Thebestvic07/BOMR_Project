@@ -116,8 +116,9 @@ if __name__ == "__main__":
             continue
 
         # Update env with Kalman
-        newcar = kalman.kalman_filter(input, thymio.motors, Mes_car.position, deltaT)
-        env.update(Environment(newcar, map, Mes_goal))
+        if not GOAL_REACHED:
+            newcar = kalman.kalman_filter(input, thymio.motors, Mes_car.position, deltaT)
+            env.update(Environment(newcar, map, Mes_goal))
         
         # Compute path if needed
         if GLOBAL_PLANNING:
@@ -130,7 +131,10 @@ if __name__ == "__main__":
             continue
         
         # Compute distance to next checkpoint and update accordingly 
-        dist_to_checkpoint = env.robot.position.dist(path[0])
+        if not GOAL_REACHED:
+            dist_to_checkpoint = env.robot.position.dist(path[0])
+        else:
+            dist_to_checkpoint = 0
 
         if dist_to_checkpoint >= LOST_TRESH:
             # If lost, recompute path on next iteration
@@ -139,7 +143,7 @@ if __name__ == "__main__":
 
         if dist_to_checkpoint <= REACH_TRESH:
             # If sufficiently close to checkpoint, remove it from path and go to next one 
-            path.pop(0)       
+            path.pop(0) if len(path) > 1 else print("Path finished !")
 
         # Check if goal reached
         if env.robot.position.dist(env.goal) < 0.1:
