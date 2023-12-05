@@ -145,14 +145,13 @@ def get_info_arucos(corners, ids, image):
     return image, arucos
 
 def robot_center_is(arucos):
+    
     if len(arucos) !=0:
         for i in range(len(arucos)):
             if arucos[i][2] == 95:
                 return (arucos[i][0], arucos[i][1])
-            else:
-                return (0, 0)
     else:
-        return (0, 0)
+        return None
     
 def center_in_grid(arucos, pos, grid_resolution):
     if len(arucos) !=0:
@@ -163,16 +162,14 @@ def center_in_grid(arucos, pos, grid_resolution):
         return (0, 0)
 
 def get_goal_pos(arucos, grid_resolution):
+   
     if len(arucos) !=0:
         for i in range(len(arucos)):
             if arucos[i][2] == 99:
                 x = int(arucos[i][0])
                 y = int(arucos[i][1])
                 return (x, y)
-            else:
-                return (0, 0)
-    else:
-        return (0, 0)
+    return (0, 0)
     
 def check_if_goal_reached(arucos, robot_pos, goal_pos):
     if len(arucos) !=0:
@@ -195,7 +192,7 @@ def get_angle_of_robot(arucos):
         return 0
 
 def draw_arrow(image, arucos, angle, length=80, color=(0, 255, 0), thickness=3):
-
+    arrow_start = None
     if len(arucos) != 0:
         for i in range(len(arucos)):
             if arucos[i][2] == 95:
@@ -206,8 +203,7 @@ def draw_arrow(image, arucos, angle, length=80, color=(0, 255, 0), thickness=3):
                  # Use cv2.arrowedLine to draw the arrow on the image
                 image = cv2.arrowedLine(image, arrow_start, arrow_end, color, thickness)
                 break
-            
-    return image
+    return image, arrow_start
 
 def activate_camera():
     # Open the camera
@@ -234,9 +230,9 @@ def get_arucos(frame):
 
 def show_robot(frame, arucos, grid_resolution):
     real_center = robot_center_is(arucos)
-    robot_pos = center_in_grid(arucos, real_center, grid_resolution)
+    #robot_pos = center_in_grid(arucos, real_center, grid_resolution)
     angle = get_angle_of_robot(arucos)
-    frame = draw_arrow(frame, arucos, angle)
+    frame, robot_pos = draw_arrow(frame, arucos, angle)
 
     return frame, arucos, robot_pos, angle
 
@@ -345,47 +341,59 @@ def apply_grid_to_camera(grid_resolution):
 
     return map, grid_resolution
 
-'''
-cap = cv2.VideoCapture(0)
 
-grid_resolution = get_dist_grid(get_arucos(cap.read()[1])[1])
+# cap = cv2.VideoCapture(1)
 
-last_known_goal_pos = (0, 0)
+# grid_resolution = get_dist_grid(get_arucos(cap.read()[1])[1])
 
-arucos = get_arucos(cap.read()[1])[1]
+# last_known_goal_pos = (0, 0)
 
-width, height = set_param_frame(arucos)
+# arucos = get_arucos(cap.read()[1])[1]
 
-while cap.isOpened():
+# width, height = set_param_frame(arucos)
 
-    robot_pos = (0, 0)
+# robot_pos = (0, 0)
 
-    frame = cap.read()[1]
 
-    frame, arucos = get_arucos(frame)
+# while cap.isOpened():
 
-    frame, arucos, robot_pos, angle = show_robot(frame, arucos, grid_resolution)
+#     frame = cap.read()[1]
 
-    projected_frame = projected_image(frame, arucos, width, height)
+#     frame, arucos = get_arucos(frame)
+
+#     frame, arucos, robot_pos, angle = show_robot(frame, arucos, grid_resolution)
+
+#     projected_frame = projected_image(frame, arucos, width, height)
     
-    goal_pos = get_goal_pos(arucos, grid_resolution)
+#     goal_pos = get_goal_pos(arucos, grid_resolution)
 
-    if goal_pos != (0, 0):
-        last_known_goal_pos = goal_pos
-
-    if check_if_goal_reached(arucos, robot_pos, last_known_goal_pos):
-        print('Goal reached')
-        break
-
-    cv2.imshow("Video Stream", projected_frame)
+#     if robot_pos != None :
+#         robot_position = tuple(round(pos/grid_resolution) for pos in robot_pos)
+#     else:
+#         robot_position = (None,None)
     
-    key = cv2.waitKey(1) & 0xFF
-    if key == ord("q"):
-        break
+#     goal_position = tuple(round(pos/grid_resolution) for pos in last_known_goal_pos)
+    
+#     if goal_pos != (0, 0):
+#         last_known_goal_pos = goal_pos
 
-cv2.destroyAllWindows()
-cap.release()
-'''
+#     if check_if_goal_reached(arucos, robot_pos, last_known_goal_pos):
+#         print('Goal reached')
+#         break
+
+
+#     cv2.imshow("Video Stream", projected_frame)
+#     print("Robot position: ", type(robot_position))
+#     print("Goal position: ", type(goal_position))
+    
+#     key = cv2.waitKey(1) & 0xFF
+#     if key == ord("q"):
+#         break
+
+
+# cv2.destroyAllWindows()
+# cap.release()
+
 
 '''
 image = cv2.imread('perspect.png')

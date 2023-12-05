@@ -32,7 +32,12 @@ def run_camera(mes_pos : Robot, mes_goal: Point, grid_res=DEFAULT_GRID_RES):
     Function that updates the global Mes_Robot variable with camera data every 0.1 seconds on average
 
     '''
-    cap = cv2.VideoCapture(0)
+    cap = cv2.VideoCapture(1)
+    grid_resolution = get_dist_grid(get_arucos(cap.read()[1])[1])
+
+    last_known_goal_pos = (0, 0)
+    arucos = get_arucos(cap.read()[1])[1]
+    width, height = set_param_frame(arucos)
 
     while True:
         if cap.isOpened() == False:
@@ -46,16 +51,22 @@ def run_camera(mes_pos : Robot, mes_goal: Point, grid_res=DEFAULT_GRID_RES):
             frame, arucos, robot_pos, angle = show_robot(frame, grid_res)
             goal_pos = get_goal_pos(arucos, grid_res)
 
+
+            if robot_pos != None :
+                robot_position = tuple(round(pos/grid_res) for pos in robot_pos)
+            
+            
+            goal_pos = tuple(round(pos/grid_resolution) for pos in goal_position)
             if goal_pos != (0, 0):
                 mes_goal = Point(goal_pos[0], goal_pos[1])
 
-            mes_pos.update(Robot(Point(robot_pos[0], robot_pos[1]), angle))
+            mes_pos.update(Robot(Point(robot_position[0], robot_position[1]), angle))
             mes_goal.update(Point(goal_pos[0], goal_pos[1]))
             
 
             cv2.imshow("Video Stream", frame)
 
-            print(f'Robot position: {robot_pos} and angle: {angle}')
+            print(f'Robot position: {robot_position} and angle: {angle}')
             print(f'Goal position: {goal_pos}')
             
         key = cv2.waitKey(1) & 0xFF
