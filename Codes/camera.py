@@ -2,7 +2,7 @@ import numpy as np
 import cv2
 import math 
 import time
-from utils.data import *
+from .utils.data import *
 
 
 def is_black_cell(image):
@@ -149,10 +149,9 @@ def robot_center_is(arucos):
         for i in range(len(arucos)):
             if arucos[i][2] == 95:
                 return (arucos[i][0], arucos[i][1])
-            else:
-                return (0, 0)
+            
     else:
-        return (0, 0)
+        return None
     
 def center_in_grid(arucos, pos, grid_resolution):
     if len(arucos) !=0:
@@ -169,8 +168,7 @@ def get_goal_pos(arucos, grid_resolution):
                 x = int(arucos[i][0])
                 y = int(arucos[i][1])
                 return (x, y)
-            else:
-                return (0, 0)
+            
     else:
         return (0, 0)
     
