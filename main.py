@@ -4,6 +4,7 @@ from tdmclient import ClientAsync, aw
 import time
 import cv2 as cv
 import threading
+import keyboard
 
 from Codes.utils.data import *
 from Codes.utils.communication import *
@@ -15,7 +16,7 @@ from Codes.map import *
  
 
 ## Constants
-GRID_RES = 25
+DEFAULT_GRID_RES = 25
 TIMESTEP = 0.1
 SIZE_THYM = 2.0  #size of thymio in number of grid
 LOST_TRESH = 10 #treshold to be considered lost
@@ -26,9 +27,9 @@ GOAL_REACHED = False
 
 ## Functions
 
-def run_camera(mes_pos : Robot, mes_goal: Point):
+def run_camera(mes_pos : Robot, mes_goal: Point, grid_res=DEFAULT_GRID_RES):
     '''
-    Function that updates the global Mes_Robot variable with camera data every 0.1 seconds
+    Function that updates the global Mes_Robot variable with camera data every 0.1 seconds on average
 
     '''
     cap = cv2.VideoCapture(0)
@@ -38,13 +39,12 @@ def run_camera(mes_pos : Robot, mes_goal: Point):
             print("Error : video stream closed")
         else:
             frame = cap.read()[1]
-            '''
+
             arucos = get_arucos(frame)
             frame = projected_image(frame, arucos)
-            grid_resolution = get_dist_grid(arucos)
-            '''
-            frame, arucos, robot_pos, angle = show_robot(frame, grid_resolution)
-            goal_pos = get_goal_pos(arucos, grid_resolution)
+
+            frame, arucos, robot_pos, angle = show_robot(frame, grid_res)
+            goal_pos = get_goal_pos(arucos, grid_res)
 
             if goal_pos != (0, 0):
                 mes_goal = Point(goal_pos[0], goal_pos[1])
@@ -62,18 +62,17 @@ def run_camera(mes_pos : Robot, mes_goal: Point):
         if key == ord("q"):
             break
 
-        time.sleep(0.1)
+        time.sleep(0.095)
 
 
 def update_thymio(thymio : Thymio):
     '''
-    Function that updates the variables of the thymio object (sensor data) every 0.1 seconds
+    Function that updates the variables of the thymio object (sensor data) every 0.1 seconds on average
 
     '''
     while True:
         thymio.read_variables()
-
-        time.sleep(0.1)
+        time.sleep(0.095)
 
 
 ## Main
@@ -85,12 +84,9 @@ if __name__ == "__main__":
 
     # Init map
     map = Map([], [], None)
-    '''
-    arucos = get_arucos(frame)
-    frame = projected_image(frame, arucos)
-    GRID_RES = get_dist_grid(arucos)
-    '''
-    frame, builtmap = apply_grid_to_camera(GRID_RES)
+
+    builtmap, grid_res = apply_grid_to_camera(DEFAULT_GRID_RES)
+    frame = cv.imread("Codes/utils/captured_frame.jpg")
     map.update(builtmap, frame)
 
     # Init variables
@@ -101,7 +97,7 @@ if __name__ == "__main__":
     path = []
 
     # Launch Threads
-    camera_thread = threading.Thread(target=run_camera, args=(Mes_car, Mes_goal,), daemon=True)
+    camera_thread = threading.Thread(target=run_camera, args=(Mes_car, Mes_goal, grid_res), daemon=True)
     camera_thread.start()
 
     thymio_thread = threading.Thread(target=update_thymio, args=(thymio,), daemon=True)
