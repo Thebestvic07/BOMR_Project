@@ -165,7 +165,7 @@ def center_in_grid(arucos, pos, grid_resolution):
 def get_goal_pos(arucos, grid_resolution):
     if len(arucos) !=0:
         for i in range(len(arucos)):
-            if arucos[i][2] == 0:
+            if arucos[i][2] == 99:
                 x = int(arucos[i][0])
                 y = int(arucos[i][1])
                 return (x, y)
@@ -232,9 +232,7 @@ def get_arucos(frame):
     frame, arucos = get_info_arucos(markerCorners, markerIds, frame)
     return frame, arucos
 
-def show_robot(frame, grid_resolution):
-
-    frame, arucos = get_arucos(frame)
+def show_robot(frame, arucos, grid_resolution):
     real_center = robot_center_is(arucos)
     robot_pos = center_in_grid(arucos, real_center, grid_resolution)
     angle = get_angle_of_robot(arucos)
@@ -258,7 +256,7 @@ def get_corners(arucos):
     else:
         return (0, 0), (0, 0), (0, 0), (0, 0)
     
-def get_dist_side_aruco(arucos):
+def get_dist_grid(arucos):
     if len(arucos) !=0:
         for i in range(len(arucos)):
             if arucos[i][2] == 0:
@@ -295,21 +293,24 @@ def get_dist_width_circuit(arucos):
     else:
         return 0
     
-def projected_image(frame, arucos):
-    pos1, pos2, pos3, pos4 = get_corners(arucos)
-    dist_aruco = int(get_dist_side_aruco(arucos))
+def set_param_frame(arucos):
+    dist_aruco = int(get_dist_grid(arucos))
     width, height = 0, 0
     if dist_aruco != 0:
         width = int(get_dist_width_circuit(arucos)/dist_aruco) + 1
         height = int(get_dist_height_circuit(arucos)/dist_aruco) + 1
         width, height = width*dist_aruco, height*dist_aruco
-    if width != 0 and height != 0:
-        if pos1 != (0,0) and pos2 != (0,0) and pos3 != (0,0) and pos4 != (0,0):
-            pts1 = np.float32([pos1, pos2, pos3, pos4])
-            pts2 = np.float32([[0,0],[width,0],[width,height],[0,height]])
-            matrix = cv2.getPerspectiveTransform(pts1,pts2)
-            result = cv2.warpPerspective(frame,matrix,(width,height))
-            return result
+    return width, height
+    
+def projected_image(frame, arucos, width, height):
+    pos1, pos2, pos3, pos4 = get_corners(arucos)
+    condition = width != 0 and height != 0 and pos1 != (0,0) and pos2 != (0,0) and pos3 != (0,0) and pos4 != (0,0)
+    if condition:
+        pts1 = np.float32([pos1, pos2, pos3, pos4])
+        pts2 = np.float32([[0,0],[width,0],[width,height],[0,height]])
+        matrix = cv2.getPerspectiveTransform(pts1,pts2)
+        result = cv2.warpPerspective(frame,matrix,(width,height))
+        return result
     else:
         return frame
 
@@ -337,20 +338,29 @@ def apply_grid_to_camera(grid_resolution):
 
     return map
 
-'''
+
 cap = cv2.VideoCapture(0)
 
-grid_resolution = 25
+grid_resolution = get_dist_grid(get_arucos(cap.read()[1])[1])
 
 last_known_goal_pos = (0, 0)
+
+arucos = get_arucos(cap.read()[1])[1]
+
+width, height = set_param_frame(arucos)
 
 while cap.isOpened():
 
     robot_pos = (0, 0)
 
     frame = cap.read()[1]
+
+    frame, arucos = get_arucos(frame)
+
+    frame, arucos, robot_pos, angle = show_robot(frame, arucos, grid_resolution)
+
+    projected_frame = projected_image(frame, arucos, width, height)
     
-    frame, arucos, robot_pos, angle = show_robot(frame, grid_resolution)
     goal_pos = get_goal_pos(arucos, grid_resolution)
 
     if goal_pos != (0, 0):
@@ -360,10 +370,7 @@ while cap.isOpened():
         print('Goal reached')
         break
 
-    cv2.imshow("Video Stream", frame)
-
-    #print(f'Robot position: {robot_pos} and angle: {angle}')
-    #print(f'Goal position: {goal_pos}')
+    cv2.imshow("Video Stream", projected_frame)
     
     key = cv2.waitKey(1) & 0xFF
     if key == ord("q"):
@@ -371,8 +378,8 @@ while cap.isOpened():
 
 cv2.destroyAllWindows()
 cap.release()
-'''
 
+'''
 image = cv2.imread('perspect.png')
 
 frame, arucos = get_arucos(image)
@@ -383,3 +390,4 @@ cv2.imshow("Video Stream", frame)
 
 cv2.waitKey(0)
 cv2.destroyAllWindows()
+'''

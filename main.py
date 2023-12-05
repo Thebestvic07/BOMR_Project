@@ -3,7 +3,6 @@ from timeit import default_timer as timer
 from tdmclient import ClientAsync, aw
 import time
 import cv2 as cv
-import keyboard
 import threading
 
 from Codes.utils.data import *
@@ -39,7 +38,11 @@ def run_camera(mes_pos : Robot, mes_goal: Point):
             print("Error : video stream closed")
         else:
             frame = cap.read()[1]
-    
+            '''
+            arucos = get_arucos(frame)
+            frame = projected_image(frame, arucos)
+            grid_resolution = get_dist_grid(arucos)
+            '''
             frame, arucos, robot_pos, angle = show_robot(frame, grid_resolution)
             goal_pos = get_goal_pos(arucos, grid_resolution)
 
@@ -82,6 +85,11 @@ if __name__ == "__main__":
 
     # Init map
     map = Map([], [], None)
+    '''
+    arucos = get_arucos(frame)
+    frame = projected_image(frame, arucos)
+    GRID_RES = get_dist_grid(arucos)
+    '''
     frame, builtmap = apply_grid_to_camera(GRID_RES)
     map.update(builtmap, frame)
 
