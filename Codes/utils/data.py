@@ -1,5 +1,6 @@
 import numpy as np
 from dataclasses import dataclass, field
+from typing import List, Optional
 # Source : https://docs.python.org/fr/3/library/dataclasses.html#module-dataclasses
 
 @dataclass
@@ -26,7 +27,7 @@ class Map:
     """ Object to caracterize a map """
     corners : list[Point]
     obstacles : list[Point]
-    frame : field(default=None, repr=False)     # frame of the map (for display)
+    frame : Optional[np.ndarray] = None   # frame of the map (for display)
 
     def update(self, newMap, frame=None):
         self.corners = newMap.corners
@@ -38,7 +39,7 @@ class Robot:
     """ Object to caracterize the Thymio in space """
     position : Point
     direction : float       #angle from x direction (->) 
-    found : field(default=False, repr = False)  # False if can't see the robot
+    found : Optional[bool] = False  # False if can't see the robot
 
     def copy(self):
         return Robot(self.position.copy(), self.direction, self.covariance.copy())

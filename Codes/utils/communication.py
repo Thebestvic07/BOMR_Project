@@ -13,7 +13,6 @@ class Thymio:
         self.motors = Motors(0,0)
         self.leds = Lights([0,0,0])
 
-
         self.location = Robot(Point(0,0), 0)
     
         self.start()
@@ -29,7 +28,6 @@ class Thymio:
             print("Connected to Thymio !")
          
             self.read_variables()
-            self.get_position()
             self.set_variable(self.leds)
     
         except:
@@ -52,7 +50,7 @@ class Thymio:
         Variable can either be Motors or Lights
         """
         if self.node == None:
-            raise "Thymio not connected"
+            raise "Problem in set_variables"
         
         if variable.__class__ is Motors:
             v = {
@@ -75,7 +73,7 @@ class Thymio:
         Update sensor variables
         """
         if self.node == None:
-            raise "Thymio not connected"
+            raise "Problem in read_variables"
 
         aw(self.node.wait_for_variables({"prox.horizontal", "motor.left.speed", "motor.right.speed"}))
         #aw(self.node.wait_for_variables({"prox.horizontal", "prox.ground.delta", "motor.left.speed", "motor.right.speed", "leds.top"}))

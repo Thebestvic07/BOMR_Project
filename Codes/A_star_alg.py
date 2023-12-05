@@ -7,11 +7,6 @@ from matplotlib import colors
 
 #functions taken from exercice session 5 and modifiied for non-square map 
 # and only for diagonal movements
-<<<<<<< HEAD:A_star_alg.py
-
-
-=======
->>>>>>> 2b2a4af8874827a357adb60a4b13397befc20220:Codes/A_star_alg.py
 
 def reconstruct_path(cameFrom, current):
     """

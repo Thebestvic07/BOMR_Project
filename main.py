@@ -35,6 +35,7 @@ def run_camera(mes_pos : Robot, mes_goal: Point, grid_res=DEFAULT_GRID_RES):
     cap = cv2.VideoCapture(1)
 
     arucos = get_arucos(cap.read()[1])[1]
+    width, height =  set_param_frame(arucos)
     grid_resolution = get_dist_grid(arucos)
     grid_res = grid_resolution if grid_resolution != None else grid_res
 
@@ -45,10 +46,10 @@ def run_camera(mes_pos : Robot, mes_goal: Point, grid_res=DEFAULT_GRID_RES):
         else:
             frame = cap.read()[1]
 
-            arucos = get_arucos(frame)
-            frame = projected_image(frame, arucos)
+            frame, arucos = get_arucos(frame)
+            frame = projected_image(frame, arucos, width, height)
 
-            frame, arucos, robot_pos, angle = show_robot(frame, grid_res)
+            frame, arucos, robot_pos, angle = show_robot(frame, arucos, grid_res)
             goal_pos = get_goal_pos(arucos, grid_res)
 
 
@@ -63,7 +64,6 @@ def run_camera(mes_pos : Robot, mes_goal: Point, grid_res=DEFAULT_GRID_RES):
             if goal_pos != (0, 0):
                 mes_goal.update(Point(goal_pos[0], goal_pos[1]))
             
-
             cv2.imshow("Video Stream", frame)
 
             print(f'Robot position: {robot_pos} and angle: {angle}')
@@ -91,13 +91,13 @@ def update_thymio(thymio : Thymio):
 if __name__ == "__main__":
     # Init Thymio
     thymio = Thymio()
-    thymio.start()
 
     # Init map
     map = Map([], [], None)
 
     builtmap, grid_res = apply_grid_to_camera(DEFAULT_GRID_RES)
-    frame = cv.imread("Codes/utils/captured_frame.jpg")
+    frame = cv.imread("Codes/captured_frame.jpg")
+    display = np.copy(frame)
     map.update(builtmap, frame)
 
     # Init variables
@@ -116,14 +116,27 @@ if __name__ == "__main__":
 
     # Wait for camera to find Thymio
     time.sleep(3)
+
     while True:
         if Mes_car.found:
+            print("Thymio found !")
+        if Mes_goal.x != 0 or Mes_goal.y != 0:
+            print("Goal found !")
+        if Mes_car.found and (Mes_goal.x != 0 or Mes_goal.y != 0):
             break
-        print("Waiting for camera to find Thymio...")
+
+        print("Waiting for camera to find Thymio and goal...")
         time.sleep(0.1)
 
     # Init Kalman filter
+    time.sleep(3)
     kalman = Kalman(Mes_car)
+
+    # Init display
+    if env.map.frame != None:     #check if frame is not empty
+       cv2.circle(display, (grid_res*env.goal.x+grid_res//2, grid_res*env.goal.y+grid_res//2), 3, (0,0,255), -1)    #show goal position with red point
+       cv2.circle(display, (grid_res*env.robot.position.x+grid_res//2, grid_res*env.robot.position.y+grid_res//2), 3, (0,255,0), -1)
+       cv2.imshow("Positions", display) 
 
     # Init timer
     start = time.time()
@@ -177,6 +190,14 @@ if __name__ == "__main__":
             thymio.set_variable(Lights([0,255,0]))   # Light up the Thymio !
             time.sleep(0.2)
             GOAL_REACHED = True
+
+        if env.map.frame != None:     #check if frame is not empty
+            display = np.copy(env.map.frame)
+            cv2.circle(display, (grid_res*env.goal.x+grid_res//2, grid_res*env.goal.y+grid_res//2), 5, (0,0,255), -1)    #show goal position with red point
+            cv2.circle(display, (grid_res*env.robot.position.x+grid_res//2, grid_res*env.robot.position.y+grid_res//2), 5, (0,255,0), -1)
+            for point in path:
+                cv2.circle(display, (grid_res*point.x+grid_res//2, grid_res*point.y+grid_res//2), 2, (255, 0, 0), -1)   
+            cv2.imshow("Positions", display) 
 
         # Update motion
         Kp_rot, Kp_fwd = controller(dist_to_checkpoint)
