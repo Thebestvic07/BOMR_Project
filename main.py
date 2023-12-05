@@ -38,6 +38,7 @@ def run_camera(mes_pos : Robot, mes_goal: Point, grid_res=DEFAULT_GRID_RES):
     grid_resolution = get_dist_grid(arucos)
     grid_res = grid_resolution if grid_resolution != None else grid_res
 
+
     while True:
         if cap.isOpened() == False:
             print("Error : video stream closed")
@@ -58,7 +59,7 @@ def run_camera(mes_pos : Robot, mes_goal: Point, grid_res=DEFAULT_GRID_RES):
                 mes_pos.update(Robot(mes_pos.position, mes_pos.direction, False))
             
             
-            goal_pos = tuple(round(pos/grid_resolution) for pos in goal_pos)    
+            goal_pos = tuple(round(pos/grid_resolution) for pos in goal_pos)        
             if goal_pos != (0, 0):
                 mes_goal.update(Point(goal_pos[0], goal_pos[1]))
             
