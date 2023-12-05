@@ -1,5 +1,5 @@
 from tdmclient import ClientAsync, aw
-from data import *
+from .data import *
 import numpy as np
 import time 
 
@@ -13,7 +13,8 @@ class Thymio:
         self.motors = Motors(0,0)
         self.leds = Lights([0,0,0])
 
-        self.situation = Robot(Point(0,0), 0)
+
+        self.location = Robot(Point(0,0), 0)
     
         self.start()
 
@@ -29,7 +30,7 @@ class Thymio:
          
             self.read_variables()
             self.get_position()
-            self.set_variable(Lights([0,32,0]))
+            self.set_variable(self.leds)
     
         except:
             print("Connection to Thymio failed!")
@@ -42,7 +43,7 @@ class Thymio:
             raise "Thymio not connected"
     
         self.set_variable(Motors(0,0))
-        self.set_variable(Lights([0,0,0]))
+        self.set_variable(Lights([255,0,0]))
         aw(self.node.unlock())
 
     def set_variable(self, variable):
@@ -69,37 +70,33 @@ class Thymio:
         self.read_variables()
 
         
-    def read_variables(self, data):
+    def read_variables(self, data = None):
         """
         Update sensor variables
         """
         if self.node == None:
             raise "Thymio not connected"
 
-        aw(self.node.wait_for_variables({"prox.horizontal", "prox.ground.delta", "motor.left.speed", "motor.right.speed", "leds.top"}))
+        aw(self.node.wait_for_variables({"prox.horizontal", "motor.left.speed", "motor.right.speed"}))
+        #aw(self.node.wait_for_variables({"prox.horizontal", "prox.ground.delta", "motor.left.speed", "motor.right.speed", "leds.top"}))
 
         self.sensors = Sensors(
             self.node.var["prox.horizontal"],
-            self.node.var["prox.ground.delta"]
+            [0,0]
+            #self.node.var["prox.ground.delta"]
         )
         
         self.motors = Motors(
             self.node.var["motor.left.speed"],
             self.node.var["motor.right.speed"]
         )
-    
-        self.leds = Lights(self.node.var["leds.top"])
+ 
+        #self.leds = Lights(self.node.var["leds.top"])
 
         if data != None :
-            data.append([self.sensors, self.motors, self.leds])
+            data.append([self.sensors, self.motors, self.target, self.leds])
 
 
-    def get_position(self):
-        """
-        Return estimated position
-        """
-        if self.node == None:
-            raise "Thymio not connected"
 
 
 

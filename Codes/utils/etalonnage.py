@@ -30,21 +30,37 @@ class RepeatedTimer(object):
 
 def DataMes(data, thymio):
     thymio.read_variables()
-    data += "\n{:4d} , {:4d}".format(thymio.motors.left, thymio.motors.right)
+    #data += "\n{:4d} , {:4d}".format(thymio.motors.left, thymio.motors.right)
+    data.append([thymio.motors.left, thymio.motors.right])
+
+def computeDispersion(data):
+    mot_l = data[:,0]
+    mot_r = data[:,1]
+
+    mot_l_mu = np.mean(mot_l)
+    mot_r_mu = np.mean(mot_r)
+    mu = np.array([mot_l_mu, mot_r_mu])
+
+    mot_l_var = np.var(mot_l)
+    mot_r_var = np.var(mot_r)
+    var = np.array([mot_l_var, mot_r_var])
+
+    return mu, var
 
 Ts = 0.1
-data = '"Motor Left", "Motor Right",'
+#data = '"Motor Left", "Motor Right",'
+data = []
 thymio = Thymio()
 
 rt = RepeatedTimer(Ts, thymio.read_variables(), data, thymio)
 
 try : 
     aw(thymio.client.sleep(5))
-    thymio.set_variable(Motors(0,0))
+    thymio.set_variable(Motors(50,50))
     aw(thymio.client.sleep(10))
 
 finally:
-        rt.stop() # better in a try/finally block to make sure the program ends!
-        thymio.set_variable(Motors(0,0))
-        with open("data.txt", "w+") as file:
-            file.write(data)
+    rt.stop() # better in a try/finally block to make sure the program ends!
+    thymio.set_variable(Motors(0,0))
+    #with open("data.txt", "w+") as file:
+    #   file.write(data)
