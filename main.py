@@ -117,22 +117,32 @@ if __name__ == "__main__":
     # Init loop
     while True:
         # Update motion every 0.1 seconds
-        if current - start < TIMESTEP:
+        deltaT = current - start
+        if deltaT < TIMESTEP:
             time.sleep(0.01)
             current = time.time()
             continue
 
         # Update env with Kalman
-        newcar = kalman.kalman_filter(input, thymio.motors, Mes_car.position)
-        env.update(Environment(newcar, map, Mes_goal))
+        if not GOAL_REACHED:
+            newcar = kalman.kalman_filter(input, thymio.motors, Mes_car.position, deltaT)
+            env.update(Environment(newcar, map, Mes_goal))
         
         # Compute path if needed
         if GLOBAL_PLANNING:
             path = calculate_path(env, SIZE_THYM, False)
             GLOBAL_PLANNING = False
+
+            # Update timer
+            start = time.time()
+            current = start
+            continue
         
         # Compute distance to next checkpoint and update accordingly 
-        dist_to_checkpoint = env.robot.position.dist(path[0])
+        if not GOAL_REACHED:
+            dist_to_checkpoint = env.robot.position.dist(path[0])
+        else:
+            dist_to_checkpoint = 0
 
         if dist_to_checkpoint >= LOST_TRESH:
             # If lost, recompute path on next iteration
@@ -141,7 +151,7 @@ if __name__ == "__main__":
 
         if dist_to_checkpoint <= REACH_TRESH:
             # If sufficiently close to checkpoint, remove it from path and go to next one 
-            path.pop(0)       
+            path.pop(0) if len(path) > 1 else print("Path finished !")
 
         # Check if goal reached
         if env.robot.position.dist(env.goal) < 0.1:
@@ -161,14 +171,14 @@ if __name__ == "__main__":
             motor_L += v_obstacle
             motor_R -= v_obstacle
 
-        thymio.set_variable(Motors(motor_L,motor_R))
+        input = Motors(motor_L, motor_R)
+        thymio.set_variable(input)
 
         # Check if escape key pressed
         if keyboard.is_pressed('esc'):
             break
 
         # Update timer
-        time.sleep(0.1)
         start = time.time()
         current = start
 
