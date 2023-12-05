@@ -32,6 +32,11 @@ class Robot:
 
     def copy(self):
         return Robot(self.position.copy(), self.direction, self.covariance.copy())
+    
+    def update(self, new):
+        for key, value in new.items():
+            if hasattr(self, key):
+                setattr(self, key, value)
 
 @dataclass
 class Environment:
@@ -46,11 +51,6 @@ class Motors:
     left  : int = 0
     right : int = 0
 
-@dataclass
-class Target:
-    """ Object to describe Thymio's target motor speeds """
-    left  : int = 0
-    right : int = 0
 
 @dataclass
 class Sensors:
