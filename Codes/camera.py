@@ -261,7 +261,7 @@ def get_dist_grid(arucos):
                 dist = math.sqrt((x2-x1)**2 + (y2-y1)**2)
                 return dist
     else:
-        return 0
+        return None
     
 def get_dist_height_circuit(arucos):
     if len(arucos) !=0:
@@ -320,6 +320,13 @@ def apply_grid_to_camera(grid_resolution):
 
     # Capture a frame
     ret, frame = cap.read()
+    
+    arucos = get_arucos(frame)
+
+    frame = projected_image(frame, arucos)
+
+    grid_res = get_dist_grid(arucos)
+    grid_resolution = grid_res if grid_res != None else grid_resolution
 
     # Check if the frame was successfully captured
     if ret:
@@ -332,7 +339,7 @@ def apply_grid_to_camera(grid_resolution):
     # Release the camera
     cap.release()
 
-    return map
+    return map, grid_resolution
 
 
 # cap = cv2.VideoCapture(1)
@@ -383,8 +390,10 @@ def apply_grid_to_camera(grid_resolution):
 #     if key == ord("q"):
 #         break
 
+
 # cv2.destroyAllWindows()
 # cap.release()
+
 
 '''
 image = cv2.imread('perspect.png')

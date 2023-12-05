@@ -30,7 +30,7 @@ class Thymio:
          
             self.read_variables()
             self.get_position()
-            self.set_variable(Lights([0,0,0]))
+            self.set_variable(self.leds)
     
         except:
             print("Connection to Thymio failed!")
@@ -77,11 +77,13 @@ class Thymio:
         if self.node == None:
             raise "Thymio not connected"
 
-        aw(self.node.wait_for_variables({"prox.horizontal", "prox.ground.delta", "motor.left.speed", "motor.right.speed", "leds.top"}))
+        aw(self.node.wait_for_variables({"prox.horizontal", "motor.left.speed", "motor.right.speed"}))
+        #aw(self.node.wait_for_variables({"prox.horizontal", "prox.ground.delta", "motor.left.speed", "motor.right.speed", "leds.top"}))
 
         self.sensors = Sensors(
             self.node.var["prox.horizontal"],
-            self.node.var["prox.ground.delta"]
+            [0,0]
+            #self.node.var["prox.ground.delta"]
         )
         
         self.motors = Motors(
@@ -89,7 +91,7 @@ class Thymio:
             self.node.var["motor.right.speed"]
         )
  
-        self.leds = Lights(self.node.var["leds.top"])
+        #self.leds = Lights(self.node.var["leds.top"])
 
         if data != None :
             data.append([self.sensors, self.motors, self.target, self.leds])
