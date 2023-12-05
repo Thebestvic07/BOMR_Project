@@ -12,7 +12,6 @@ class Thymio:
         self.sensors = Sensors([0,0,0,0,0,0,0],[0,0])
         self.motors = Motors(0,0)
         self.leds = Lights([0,0,0])
-        self.target = Target(0,0)
 
 
         self.location = Robot(Point(0,0), 0)
@@ -31,7 +30,7 @@ class Thymio:
          
             self.read_variables()
             self.get_position()
-            self.set_variable(Lights([0,32,0]))
+            self.set_variable(Lights([0,0,0]))
     
         except:
             print("Connection to Thymio failed!")
@@ -44,7 +43,7 @@ class Thymio:
             raise "Thymio not connected"
     
         self.set_variable(Motors(0,0))
-        self.set_variable(Lights([0,0,0]))
+        self.set_variable(Lights([255,0,0]))
         aw(self.node.unlock())
 
     def set_variable(self, variable):
@@ -89,24 +88,13 @@ class Thymio:
             self.node.var["motor.left.speed"],
             self.node.var["motor.right.speed"]
         )
-
-        self.target = Target(
-            self.node.var["motor.left.target"],
-            self.node.var["motor.right.target"]
-        )
-    
+ 
         self.leds = Lights(self.node.var["leds.top"])
 
         if data != None :
             data.append([self.sensors, self.motors, self.target, self.leds])
 
 
-    def get_position(self):
-        """
-        Return estimated position
-        """
-        if self.node == None:
-            raise "Thymio not connected"
 
 
 

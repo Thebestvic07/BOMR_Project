@@ -6,11 +6,12 @@ class Kalman:
     # Constants
     THYMIO_WIDTH = 5.0
     TIMESTEP = 0.1
+    SPEEDCONV = 0.1
 
     MOT_VAR = 6.25   # +- 5      --> sigma = 2.5 --> var = 6.25
     POS_VAR = 0.25   # +- 1 case --> sigma = 0.5 --> var = 0.25
     DIR_VAR = 0.01   # +- 5°     --> sigma = 2.5° --> sigma = 0.1 rad --> var = 0.01
-    SPEEDCONV = 0.1 
+     
 
     def __init__(self, initial_state: Robot) -> None:
         # Initialize memory variables for kalman filter

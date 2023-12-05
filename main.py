@@ -22,6 +22,7 @@ SIZE_THYM = 2.0  #size of thymio in number of grid
 LOST_TRESH = 10 #treshold to be considered lost
 REACH_TRESH = 3 #treshhold to reach current checkpoint
 GLOBAL_PLANNING = True
+GOAL_REACHED = False
 
 
 ## Functions
@@ -47,6 +48,7 @@ def run_camera(mes_pos : Robot, mes_goal: Point):
 
             mes_pos.update(Robot(Point(robot_pos[0], robot_pos[1]), angle))
             mes_goal.update(Point(goal_pos[0], goal_pos[1]))
+            
 
             cv2.imshow("Video Stream", frame)
 
@@ -84,19 +86,21 @@ if __name__ == "__main__":
     map.update(builtmap, frame)
 
     # Init variables
-    car = Robot(Point(0,0), 0)
-    goal = Point(0,0)
-    env = Environment(car, map, goal)
+    Mes_car = Robot(Point(0,0), 0)
+    Mes_goal = Point(0,0)
+    env = Environment(Mes_car, map, Mes_goal)
+    input = Motors(0,0)
+    path = []
 
     # Launch Threads
-    camera_thread = threading.Thread(target=run_camera, args=(car, goal,), daemon=True)
+    camera_thread = threading.Thread(target=run_camera, args=(Mes_car, Mes_goal,), daemon=True)
     camera_thread.start()
 
     thymio_thread = threading.Thread(target=update_thymio, args=(thymio,), daemon=True)
     thymio_thread.start()
 
     # Init Kalman filter
-    kalman = Kalman(car)
+    kalman = Kalman(Mes_car)
 
     # Init timer
     start = time.time()
@@ -111,43 +115,54 @@ if __name__ == "__main__":
             continue
 
         # Update env with Kalman
-
+        newcar = kalman.kalman_filter(input, thymio.motors, Mes_car.position)
+        env.update(Environment(newcar, map, Mes_goal))
+        
         # Compute path if needed
         if GLOBAL_PLANNING:
             path = calculate_path(env, SIZE_THYM, False)
             GLOBAL_PLANNING = False
         
-        dist_to_checkpoint = car.position.dist(path[0])
+        # Compute distance to next checkpoint and update accordingly 
+        dist_to_checkpoint = env.robot.position.dist(path[0])
 
         if dist_to_checkpoint >= LOST_TRESH:
+            # If lost, recompute path on next iteration
             GLOBAL_PLANNING = True
+            continue
 
         if dist_to_checkpoint <= REACH_TRESH:
+            # If sufficiently close to checkpoint, remove it from path and go to next one 
             path.pop(0)       
-
-        # Update mes_env
-        env.update(Environment(car, map, goal))
-
-        # Update kalman
-        kalman.kalman_filter(thymio.input, thymio.speed, env.robot.position)
-
-        # Update motion
-        motion.update(env, kalman.robot)
-
-        # Update avoid
-        avoid.update(env, kalman.robot)
-
-        # Update thymio
-        thymio.set_variable(motion.output)
 
         # Check if goal reached
         if env.robot.position.dist(env.goal) < 0.1:
             print("Goal reached !")
-            break
+            thymio.set_variable(Lights([0,255,0]))   # Light up the Thymio !
+            time.sleep(0.2)
+            GOAL_REACHED = True
+
+        # Update motion
+        Kp_rot, Kp_fwd = controller(dist_to_checkpoint)
+
+        motor_L, motor_R = compute_velocity(env.robot.position, path[0], Kp_rot, Kp_fwd, env.robot.direction, GOAL_REACHED)
+
+        # Compute and set motors speed
+        obstacle_detected, v_obstacle = obstacle_avoidance(thymio.sensors[:4])
+        if obstacle_detected : 
+            motor_L += v_obstacle
+            motor_R -= v_obstacle
+
+        thymio.set_variable(Motors(motor_L,motor_R))
 
         # Check if escape key pressed
         if keyboard.is_pressed('esc'):
             break
+
+        # Update timer
+        time.sleep(0.1)
+        start = time.time()
+        current = start
 
     # Stop Thymio
     thymio.stop()
