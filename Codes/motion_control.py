@@ -29,18 +29,18 @@ def compute_velocity(position, goal, Kp_angle, Kp_dist, thymio_angle, final_goal
 
 # def compute_angle_error(position, goal, thymio_angle):
  # angle = -180*math.atan2(goal[1] - position[1], goal[0] - position[0])/math.pi
-  #angle_error = thymio_angle- angle
-  #return angle_error
+ #angle_error = thymio_angle- angle
+ #return angle_error
 
 
-def controller(distance, distance_total, slowing_distance = 100):
+def controller(distance, slowing_distance = 3.0, speedConv = 0.1):
     
-  if distance < slowing_distance or (distance_total - distance) < slowing_distance:
-    Kp_angle = 3
-    Kp_dist = 0.8
+  if distance > slowing_distance :
+    Kp_angle = 3.0 / speedConv
+    Kp_dist = 0.8 / speedConv
 
-  elif distance > slowing_distance and (distance_total - distance) > slowing_distance:
-    Kp_angle = 1.2
-    Kp_dist = 1
+  else:
+    Kp_angle = 1.2 / speedConv
+    Kp_dist = 1.0 / speedConv
 
   return Kp_angle, Kp_dist
