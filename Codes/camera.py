@@ -45,19 +45,18 @@ def replace_black():
     return cv2.imread('black_image.png')
 
 def show_grid(image, grid_resolution):
-    # Create a copy of the image to avoid modifying the original
-    grid_image = image.copy()
-
     # Get image dimensions
     height, width = image.shape[:2]
 
     # Draw vertical grid lines
     for x in range(0, width, grid_resolution):
-        cv2.line(grid_image, (x, 0), (x, height), (0, 255, 0), 1)
+        cv2.line(image, (x, 0), (x, height), (0, 100, 0), 1)
 
     # Draw horizontal grid lines
     for y in range(0, height, grid_resolution):
-        cv2.line(grid_image, (0, y), (width, y), (0, 255, 0), 1)
+        cv2.line(image, (0, y), (width, y), (0, 100, 0), 1)
+    
+    return image
 
 # Change the image according to the percentage of black pixels
 def change_cell(image):
@@ -225,7 +224,6 @@ def draw_arrow(image, arucos, angle, length=80, color=(0, 255, 0), thickness=3):
                  # Use cv2.arrowedLine to draw the arrow on the image
                 image = cv2.arrowedLine(image, arrow_start, arrow_end, color, thickness)
                 break
-            
     return image
 
 def draw_arrow_from_robot(image, robot, grid_res, length=80, color=(0, 255, 0), thickness=3):

@@ -16,14 +16,16 @@ def obstacle_avoidance(prox_horizontal):
              - left_velocity: Velocity adjustment for the left motor in the local frame.
              - right_velocity: Velocity adjustment for the right motor in the local frame.
     """
-    obstThr=1500 #detection of the white box
+    obstThr = 1500 #detection of the white box = 3 units
+    closeobsThr = 3000 #detection of the wall = 2 units
     
     addLeft = 0
     addRight = 0
-    weight=[50,75,-100,-75,-50] #weight of associated to each sensor
+    weight=[6, 4, -3, -6, -8] #weight of associated to each sensor
 
     obstacle_detected=False
 
+    prox_horizontal = prox_horizontal[0:5] #we only use the 5 front sensors
 
     # Check if any sensor reading is above the obstacle detection threshold
     if any(value > obstThr for value in prox_horizontal):
