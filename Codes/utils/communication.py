@@ -29,6 +29,7 @@ class Thymio:
          
             self.read_variables()
             self.set_variable(self.leds)
+            self.set_variable(self.motors)
     
         except:
             print("Connection to Thymio failed!")
@@ -53,6 +54,7 @@ class Thymio:
             raise "Problem in set_variables"
         
         if variable.__class__ is Motors:
+            print("Setting motors to ", variable.left, variable.right)
             v = {
                 "motor.left.target": [variable.left],
                 "motor.right.target": [variable.right],
@@ -85,8 +87,8 @@ class Thymio:
         )
         
         self.motors = Motors(
-            self.node.var["motor.left.speed"],
-            self.node.var["motor.right.speed"]
+            self.node.var["motor.left.speed"][0],
+            self.node.var["motor.right.speed"][0]
         )
  
         #self.leds = Lights(self.node.var["leds.top"])

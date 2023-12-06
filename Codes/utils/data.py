@@ -47,6 +47,7 @@ class Robot:
     def update(self, newRobot):
         self.position = newRobot.position
         self.direction = newRobot.direction
+        self.found = newRobot.found
         
 @dataclass
 class Environment:
@@ -97,3 +98,11 @@ class Sensors:
 class Lights:
     """ Object to caracterize Thymio's top lights """
     color : list[int]  # 3 int list
+
+@dataclass 
+class Camera:
+    """ Object to caracterize Camera """
+    Status : Optional[bool] = False  # ON = 1, OFF = 0
+
+    def update(self, status):
+        self.Status = status
