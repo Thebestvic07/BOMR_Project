@@ -149,16 +149,16 @@ def robot_center_is(arucos):
         for i in range(len(arucos)):
             if arucos[i][2] == 95:
                 return (arucos[i][0], arucos[i][1])
-            else:
-                return (0, 0)
     else:
         return (0, 0)
     
-def center_in_grid(arucos, pos, grid_resolution):
+def center_in_grid(arucos, id, grid_resolution):
     if len(arucos) !=0:
-        x = int(pos[0]/grid_resolution)
-        y = int(pos[1]/grid_resolution)
-        return (x, y)
+        for i in range(len(arucos)):
+            if arucos[i][2] == id:
+                x = int(arucos[i][0]/grid_resolution)
+                y = int(arucos[i][1]/grid_resolution)
+                return (x, y)
     else:
         return (0, 0)
 
@@ -234,7 +234,7 @@ def get_arucos(frame):
 
 def show_robot(frame, arucos, grid_resolution):
     real_center = robot_center_is(arucos)
-    robot_pos = center_in_grid(arucos, real_center, grid_resolution)
+    robot_pos = center_in_grid(arucos, 95, grid_resolution)
     angle = get_angle_of_robot(arucos)
     frame = draw_arrow(frame, arucos, angle)
 
@@ -339,15 +339,15 @@ def apply_grid_to_camera(grid_resolution):
     return map
 
 
-cap = cv2.VideoCapture(1)
+cap = cv2.VideoCapture(0)
 
-grid_resolution = get_dist_grid(get_arucos(cap.read()[1])[1])
+grid_resolution = 25
 
 last_known_goal_pos = (0, 0)
 
 arucos = get_arucos(cap.read()[1])[1]
 
-width, height = set_param_frame(arucos)
+width, height = 707, 1000
 
 while cap.isOpened():
 
@@ -359,9 +359,9 @@ while cap.isOpened():
 
     frame, arucos, robot_pos, angle = show_robot(frame, arucos, grid_resolution)
 
-    projected_frame = projected_image(frame, arucos, width, height)
-    
-    goal_pos = get_goal_pos(arucos, grid_resolution)
+    robot_pos = center_in_grid(arucos, 95, grid_resolution)
+
+    goal_pos = center_in_grid(arucos, 99, grid_resolution)
 
     if goal_pos != (0, 0):
         last_known_goal_pos = goal_pos
@@ -370,7 +370,7 @@ while cap.isOpened():
         print('Goal reached')
         break
 
-    cv2.imshow("Video Stream", projected_frame)
+    cv2.imshow("Video Stream", frame)
     
     key = cv2.waitKey(1) & 0xFF
     if key == ord("q"):
