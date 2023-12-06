@@ -15,7 +15,7 @@ def compute_angle_error(position, checkpoint, thymio_angle):
   :param thymio_angle: Current orientation of the robot.
   :return: Angle error between the robot and the goal.
   """
-  angle = np.pi - np.arctan2( -(checkpoint.y - position.y), checkpoint.x - position.x)
+  angle = - np.arctan2( -(checkpoint.y - position.y), checkpoint.x - position.x)
 
   angle_error = thymio_angle - angle 
   angle_error = (angle_error + np.pi) % (2 * np.pi) - np.pi
@@ -50,11 +50,7 @@ def controller(robot, checkpoint, base_speed, prev_angle_error, dt, final_goal_r
   angle_error = compute_angle_error(robot.position, checkpoint, robot.direction)
   derived_angle_error = compute_derived_angle_error(angle_error, prev_angle_error, dt)
 
-  print("angle_error: ", angle_error, "derived_angle_error: ", derived_angle_error)
-
   rot_speed = Kp * angle_error + Kd * derived_angle_error
-
-  print("rot_speed: ", rot_speed)
 
   # Clip the rotation speed to avoid saturation
   rot_speed = rot_speed if abs(rot_speed) < 200 - base_speed else 200 - base_speed
