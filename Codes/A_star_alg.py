@@ -43,14 +43,15 @@ def A_Star(start, goal, h, coords, occupancy_grid, visitedNodes):
     # Check if the start and goal are within the boundaries of the map
     max_x, max_y = occupancy_grid.shape[0], occupancy_grid.shape[1] # Size of the map
     for point in [start, goal]:
-        assert point[0]>=0  and point[1]>=0 and point[0]<max_x and point[1]<max_y, "start or end goal not contained in the map"
+        if point[0]<0  or point[1]<0 or point[0]>=max_x or point[1]>=max_y:
+            print("start or end goal not contained in the map")
     
     # check if start and goal nodes correspond to free spaces
     if occupancy_grid[start[0], start[1]]:
-        raise Exception('Start node is not traversable')
+        print("Thymio is on an obstacle, please move it to a free space")
 
     if occupancy_grid[goal[0], goal[1]]:
-        raise Exception('Goal node is not traversable')
+        print("Goal is on an obstacle, please move it to a free space")
     
     # get the possible movements corresponding to the selected connectivity
     

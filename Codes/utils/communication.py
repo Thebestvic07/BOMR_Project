@@ -28,8 +28,8 @@ class Thymio:
             print("Connected to Thymio !")
          
             self.read_variables()
-            self.set_variable(self.leds)
-            self.set_variable(self.motors)
+            self.set_variable(Lights([0,0,0]))
+            self.set_variable(Motors(0,0))
     
         except:
             print("Connection to Thymio failed!")

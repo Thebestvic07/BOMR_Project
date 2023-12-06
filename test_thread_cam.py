@@ -91,40 +91,40 @@ if __name__ == "__main__":
     map.update(map, frame)
 
     # Init variables
-    Mes_car = Robot(Point(20,14), -2.25)  # Mes_car = measured car
-    Mes_goal = Point(10,9)           # Mes_goal = measured goal
+    Mes_car = Robot(Point(0,0), 0)  # Mes_car = measured car
+    Mes_goal = Point(0,0)           # Mes_goal = measured goal
     env = Environment(Mes_car, map, Mes_goal)       # env = estimated environment (updated with Kalman)
     input = Motors(0,0)             # input = motors command
     path = []                       # path = list of checkpoints to reach
     camera = Camera()
 
     # # Launch Threads
-    # camera_thread = threading.Thread(target=run_camera, args=(Mes_car, Mes_goal, camera, grid_res), daemon=True)
-    # camera_thread.start()
+    camera_thread = threading.Thread(target=run_camera, args=(Mes_car, Mes_goal, camera, grid_res), daemon=True)
+    camera_thread.start()
 
 
-    # # Wait for camera to find Thymio
-    # time.sleep(3)
+    # Wait for camera to find Thymio
+    time.sleep(3)
 
-    # while True:
-    #     if camera.Status == False:
-    #         print("Waiting for camera to start...")
-    #     else: 
-    #         if Mes_car.found:
-    #             print("Thymio found !")
-    #         if Mes_goal.x != 0 or Mes_goal.y != 0:
-    #             print("Goal found !")
-    #         if Mes_car.found and (Mes_goal.x != 0 or Mes_goal.y != 0):
-    #             # break
-    #             print("Let's go !")
+    while True:
+        if camera.Status == False:
+            print("Waiting for camera to start...")
+        else: 
+            if Mes_car.found:
+                print("Thymio found !")
+            if Mes_goal.x != 0 or Mes_goal.y != 0:
+                print("Goal found !")
+            if Mes_car.found and (Mes_goal.x != 0 or Mes_goal.y != 0):
+                # break
+                print("Let's go !")
 
-    #         print("Waiting for camera to find Thymio and goal...")
+            print("Waiting for camera to find Thymio and goal...")
 
-    #     # Check if escape key pressed
-    #     if keyboard.is_pressed('esc'):
-    #         break
+        # Check if escape key pressed
+        if keyboard.is_pressed('esc'):
+            break
 
-    #     time.sleep(0.1)
+        time.sleep(0.1)
 
     while True:
         if env.map.frame is not None:     #check if frame is not empty

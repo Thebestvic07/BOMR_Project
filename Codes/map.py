@@ -60,7 +60,7 @@ def create_grid(env):
     return grid, start, goal
     
 
-def map_without_collision(grid, size_thym):
+def map_without_collision(grid, extended_obs, size_thym):
     "add half size of thymio to the obstacles to avoid collisions"
     map = grid.copy()
     max_x, max_y = grid.shape[0], grid.shape[1] # Size of the map
@@ -74,6 +74,7 @@ def map_without_collision(grid, size_thym):
                         y -= int(np.ceil(size_thym/2))
                         if (0 <= i+x < max_x) and (0 <= j+y < max_y): #check if position is in grid
                             map[i+x,j+y] = 1
+                            extended_obs.append(Point(i+x,j+y))
 
     return map
 
@@ -86,13 +87,13 @@ def convert_path(path, finalpath):
 
 
 
-def calculate_path(env, finalpath, visitedNodes, size_thym, PLOT=False):
+def calculate_path(env, finalpath, extended_obs, visitedNodes, size_thym, PLOT=False):
     """calls all functions to calculate path
        out: path given in a list of Points 
     """
 
     grid, start, goal = create_grid(env)
-    occupancy_grid = map_without_collision(grid, size_thym)
+    occupancy_grid = map_without_collision(grid, extended_obs, size_thym)
     max_x, max_y = grid.shape[0], grid.shape[1] # Size of the map
     # List of all coordinates in the grid
     x,y = np.mgrid[0:max_x:1, 0:max_y:1]
@@ -112,6 +113,14 @@ def calculate_path(env, finalpath, visitedNodes, size_thym, PLOT=False):
     closedSet = np.array(closedSet).reshape(-1, 2).transpose()
 
     convert_path(path, finalpath)
+
+    # obstacles = list()
+    # for x in range(max_x):
+    #     for y in range(max_y):
+    #         if occupancy_grid[x,y] == 1:
+    #             obstacles.append(Point(x,y))
+
+    # env.map.update(Map(env.map.corners, obstacles, env.map.frame))
 
     if PLOT:
         cmap = colors.ListedColormap(['white', 'red']) # Select the colors with which to display obstacles and free cells
