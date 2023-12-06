@@ -14,7 +14,7 @@ The "Course Project - [ Basics of Mobile Robotics ](https://moodle.epfl.ch/cours
 
 3. **Motion Control & Pose Estimation**
    - Implement motion control to guide the robot along the path.
-   - Achieve accurate pose estimation through Bayesian filtering methods.
+   - Achieve accurate pose estimation through Kalman filtering.
 
 4. **Avoid Obstacles**
    - During navigation, Thymio must employ local navigation techniques to avoid physical obstacles (3D white blocks).
@@ -32,7 +32,7 @@ Captures video frames from the camera, processes ArUco markers, and displays the
 
 ## Kalman Filter
 The Kalman filter function implement an EKF that estimates the current state.
-For this it uses the camera & motor speed measurement, the motor input and the previous state. It returns the new a posteriori motor speed estimation and the new a posteriori position estimation.
+For this it uses the camera & motor speed measurement, the motor input, the previous state and the dynamical model. 
 
 ## Global Navigation
 The visualization includes creating plots to display the environment, A* algorithm progress, and the final path. Obstacles are shown in red, free cells in white, the start position in green, the goal position in purple, and the path in blue.
