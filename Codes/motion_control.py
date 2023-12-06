@@ -12,7 +12,7 @@ def compute_velocity(robot, goal, Rot_control, Fwd_control, final_goal_reached=F
     thymio_angle = 180*thymio_angle/math.pi
 
     # computes the angle between the robot and the goal
-    angle = -180*math.atan2(goal.y - position.y, goal.x - position.y)/math.pi
+    angle = 180-180*math.atan2(goal.y - position.y, goal.x - position.x)/math.pi
     angle_error = thymio_angle - angle
 
     # forces the angles to be between -pi and pi
@@ -39,17 +39,16 @@ def compute_velocity(robot, goal, Rot_control, Fwd_control, final_goal_reached=F
  #return angle_error
 
 
-def controller(distance, slowing_distance = 1.0, speedConv = 0.05, thymio_width = 2.5):
+def controller(distance, slowing_distance = 0.7 , speedConv = 0.05, thymio_width = 2.5):
   
-  K = 20   #proportional gain
+  K = 50   #proportional gain
 
-  if distance > slowing_distance :
-    fwdspeed_target = 3.0 
-    rotspeed_target = 0.5
+  # if distance > slowing_distance :
+  #   fwdspeed_target = 4.0 
+  #   rotspeed_target = 1.0
 
-  else:
-    fwdspeed_target = 1.5
-    rotspeed_target = 1.0
+  fwdspeed_target = 2.0
+  rotspeed_target = 1.0
 
   fwd_order = K * fwdspeed_target / (2 * speedConv)
   rot_order = K * rotspeed_target / (thymio_width * speedConv * np.pi)
