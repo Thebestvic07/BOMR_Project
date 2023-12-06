@@ -24,7 +24,7 @@ The "Course Project - [ Basics of Mobile Robotics ](https://moodle.epfl.ch/cours
 To install and set up the project, you can download it from our [GitHub repository](https://github.com/Thebestvic07/BOMR_Project.git)
 
 ## Usage
-To run the project, execute the main.py script.
+To run the project, execute the main.py script. More explantion in the report.
 
 ## Vision and Aruco Configuration
 
