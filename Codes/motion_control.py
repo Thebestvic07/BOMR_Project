@@ -3,7 +3,17 @@ import math
 from .utils.data import *
 
 def compute_velocity(robot, goal, Rot_control, Fwd_control, final_goal_reached=False):
+  """
+  Computes the motor velocities based on the position, goal, and control parameters.
 
+  :param position: Current position of the robot.
+  :param goal: Goal position to reach (next point in the global path).
+  :param Kp_angle: Proportional gain for angle control.
+  :param Kp_dist: Proportional gain for distance control.
+  :param thymio_angle: Current orientation of the robot.
+  :param final_goal_reached: Flag indicating whether the final goal is reached, not motion is needed.
+  :return: Tuple (motor_left, motor_right) representing motor velocities.
+  """
   # thymio stops when arrived at final goal
   if not (final_goal_reached):
     position = robot.position
@@ -39,9 +49,20 @@ def compute_velocity(robot, goal, Rot_control, Fwd_control, final_goal_reached=F
  #return angle_error
 
 
-def controller(distance, slowing_distance = 0.7 , speedConv = 0.05, thymio_width = 2.5):
-  
-  K = 50   #proportional gain
+def controller(distance, slowing_distance = 1.0, speedConv = 0.05, thymio_width = 2.5):
+  """
+  Computes the control gains based on the current distance to the goal.
+  It inhibits the straight movement (v_direction) of the robot when it starts the new segment of the path,
+  and accelerates the rotation (v_orientation)
+
+  :param distance: Current distance to the goal (next point in the global path)
+  :param slowing_distance: Distance threshold for reducing control gains.
+  :param speed_conv: Conversion factor for speed control.
+  :return: Tuple (Kp_angle, Kp_dist) representing control gains.
+  """
+
+  #if the thymio is near from the starting point
+  K = 20   #proportional gain
 
   # if distance > slowing_distance :
   #   fwdspeed_target = 4.0 
