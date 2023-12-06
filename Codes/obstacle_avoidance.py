@@ -24,8 +24,8 @@ def obstacle_avoidance(prox_horizontal):
     #this part is inspired from the potential field navigation excercise in session 4
     elif obstacle_detected:
         for i in range(5):
-            addLeft += prox_horizontal[i] * Delta[i]//100
-            addRight += prox_horizontal[i] * Delta[4 - i]//100
+            addLeft += prox_horizontal[i] * weight[i] // 200
+            addRight += prox_horizontal[i] * weight[4 - i] // 200
         
         return obstacle_detected, addLeft , addRight
     

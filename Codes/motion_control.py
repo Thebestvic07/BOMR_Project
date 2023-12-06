@@ -1,10 +1,16 @@
 
 import math
+from .utils.data import *
 
-def compute_velocity(position, goal, Kp_angle, Kp_dist, thymio_angle, final_goal_reached=False):
+def compute_velocity(robot, goal, Rot_control, Fwd_control, final_goal_reached=False):
 
   # thymio stops when arrived at final goal
   if not (final_goal_reached):
+    position = robot.position
+    thymio_angle = robot.direction
+    #convert from radians to degrees
+    thymio_angle = 180*thymio_angle/math.pi
+
     # computes the angle between the robot and the goal
     angle = -180*math.atan2(goal.y - position.y, goal.x - position.y)/math.pi
     angle_error = thymio_angle - angle
@@ -14,12 +20,12 @@ def compute_velocity(position, goal, Kp_angle, Kp_dist, thymio_angle, final_goal
     angle_error = (angle_error + 180) % 360 - 180
 
     #computes v_orientation, v_position so it doesn't get calculated twice
-    v_position = Kp_dist * (180-abs(angle_error))
-    v_orientation = Kp_angle * angle_error
+    Fwd_mot = Fwd_control * (180-abs(angle_error)) / 180
+    Rot_mot = Rot_control * angle_error / 180
 
     #v_orientation + v_position
-    motor_L = v_orientation + v_position
-    motor_R = -v_orientation + v_position
+    motor_L = -Rot_mot + Fwd_mot
+    motor_R =  Rot_mot + Fwd_mot
 
   else:
     motor_L = 0
@@ -33,14 +39,19 @@ def compute_velocity(position, goal, Kp_angle, Kp_dist, thymio_angle, final_goal
  #return angle_error
 
 
-def controller(distance, slowing_distance = 3.0, speedConv = 0.1):
-    
+def controller(distance, slowing_distance = 1.0, speedConv = 0.05, thymio_width = 2.5):
+  
+  K = 20   #proportional gain
+
   if distance > slowing_distance :
-    Kp_angle = 3.0 / speedConv
-    Kp_dist = 0.8 / speedConv
+    fwdspeed_target = 3.0 
+    rotspeed_target = 0.5
 
   else:
-    Kp_angle = 1.2 / speedConv
-    Kp_dist = 1.0 / speedConv
+    fwdspeed_target = 1.5
+    rotspeed_target = 1.0
 
-  return Kp_angle, Kp_dist
+  fwd_order = K * fwdspeed_target / (2 * speedConv)
+  rot_order = K * rotspeed_target / (thymio_width * speedConv * np.pi)
+
+  return rot_order, fwd_order

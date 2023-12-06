@@ -50,8 +50,8 @@ def create_grid(env):
         if corners.y > max_y:
             max_y = corners.y
     
-    goal = (env.goal.x, env.goal.y) #set goal and start as tupples
-    start = (env.robot.position.x, env.robot.position.y)
+    goal = (int(env.goal.x), int(env.goal.y))
+    start = (int(env.robot.position.x), int(env.robot.position.y))
 
     grid = np.zeros((max_x, max_y)) 
     for obs in env.map.obstacles:
@@ -77,18 +77,16 @@ def map_without_collision(grid, size_thym):
 
     return map
 
-def convert_path(path):
+def convert_path(path, finalpath):
     "convert the path given in as an array of size(n,2) as a list of Points"
-    list_points = list()
     
     for i in range(np.size(path,1)):
-        pt = Point(path[0][i], path[1][i])
-        list_points.append(pt)
-
-    return list_points
+        pt = Point(path[0][i] + 0.5, path[1][i] + 0.5)
+        finalpath.append(pt)
 
 
-def calculate_path(env, size_thym, PLOT=False):
+
+def calculate_path(env, finalpath, visitedNodes, size_thym, PLOT=False):
     """calls all functions to calculate path
        out: path given in a list of Points 
     """
@@ -108,12 +106,12 @@ def calculate_path(env, size_thym, PLOT=False):
     h = dict(zip(coords, h))
 
     # Run the A* algorithm
-    path, visitedNodes = A_Star(start, goal, h, coords, occupancy_grid)
+    path, closedSet = A_Star(start, goal, h, coords, occupancy_grid, visitedNodes)
     path = np.array(path).reshape(-1, 2).transpose()
 
-    visitedNodes = np.array(visitedNodes).reshape(-1, 2).transpose()
+    closedSet = np.array(closedSet).reshape(-1, 2).transpose()
 
-    path = convert_path(path)
+    convert_path(path, finalpath)
 
     if PLOT:
         cmap = colors.ListedColormap(['white', 'red']) # Select the colors with which to display obstacles and free cells

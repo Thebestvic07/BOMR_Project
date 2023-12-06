@@ -2,7 +2,7 @@ import numpy as np
 import cv2
 import math 
 import time
-from utils.data import *
+from .utils.data import *
 
 
 def is_black_cell(image):
@@ -16,7 +16,7 @@ def is_black_cell(image):
     percentage_black = (black_pixels / total_pixels) * 100
 
     # Set the threshold percentage
-    threshold_percentage = 10  # Adjust this threshold as needed
+    threshold_percentage = 30  # Adjust this threshold as needed
 
     # Check if the percentage of black pixels exceeds the threshold
     if percentage_black > threshold_percentage:
@@ -159,20 +159,17 @@ def center_in_grid(arucos, id, grid_resolution):
                 x = int(arucos[i][0]/grid_resolution)
                 y = int(arucos[i][1]/grid_resolution)
                 return (x, y)
-    else:
-        return (0, 0)
+    return (0, 0)
 
-def get_goal_pos(arucos, grid_resolution):
+def get_goal_pos_in_pixel(arucos):
     if len(arucos) !=0:
         for i in range(len(arucos)):
             if arucos[i][2] == 99:
                 x = int(arucos[i][0])
                 y = int(arucos[i][1])
                 return (x, y)
-            else:
-                return (0, 0)
-    else:
-        return (0, 0)
+            
+    return (0, 0)
     
 def check_if_goal_reached(arucos, robot_pos, goal_pos):
     if len(arucos) !=0:
@@ -191,8 +188,7 @@ def get_angle_of_robot(arucos):
                 x2, y2 = arucos[i][3][1][0], arucos[i][3][1][1]
                 angle = math.atan2(-(y2 - y1), x2 - x1)
                 return angle
-    else:
-        return 0
+    return 0
 
 def draw_arrow(image, arucos, angle, length=80, color=(0, 255, 0), thickness=3):
 
@@ -207,6 +203,48 @@ def draw_arrow(image, arucos, angle, length=80, color=(0, 255, 0), thickness=3):
                 image = cv2.arrowedLine(image, arrow_start, arrow_end, color, thickness)
                 break
             
+    return image
+
+def draw_arrow_from_robot(image, robot, grid_res, length=80, color=(0, 255, 0), thickness=3):
+    # if robot at (0,0) then no arrow
+    if robot.position.x + robot.position.y  == 0:
+        return image
+
+    arrow_start = (robot.position.x + 1/2, robot.position.y + 1/2)
+    arrow_start = (int(arrow_start[0]*grid_res), int(arrow_start[1]*grid_res))
+    angle = robot.direction
+
+    x =  int(round(arrow_start[0] + length * math.cos(angle)))
+    y =  int(round(arrow_start[1] - length * math.sin(angle)))
+    arrow_end = (x, y)
+
+    # Use cv2.arrowedLine to draw the arrow on the image
+    image = cv2.arrowedLine(image, arrow_start, arrow_end, color, thickness)
+
+    return image
+
+def draw_goal(image, arucos, grid_res, radius=10, color=(0, 0, 255), thickness=-1):
+    position = get_goal_pos_in_pixel(arucos)
+
+    if position == (0, 0):
+        return image
+
+    display_pos = (position[0] + grid_res/2, position[1] + grid_res/2)
+    display_pos = (int(position[0]), int(position[1]))
+
+    cv2.circle(image, display_pos, radius, color, thickness)
+    return image
+
+def draw_circle(image, grid_pos, grid_res, radius=5, color=(255, 0, 0), thickness=-1):
+    grid_pos
+
+    if grid_pos == (0, 0):
+        return image
+
+    display_pos = (grid_pos[0] + 1/2, grid_pos[1] + 1/2)
+    display_pos = (int(display_pos[0]*grid_res), int(display_pos[1]*grid_res))
+
+    cv2.circle(image, display_pos, radius, color, thickness)
     return image
 
 def activate_camera():
@@ -256,16 +294,15 @@ def get_corners(arucos):
     else:
         return (0, 0), (0, 0), (0, 0), (0, 0)
     
-def get_dist_grid(arucos):
+def get_dist_grid(arucos, default=25):
     if len(arucos) !=0:
         for i in range(len(arucos)):
             if arucos[i][2] == 0:
                 x1, y1 = arucos[i][3][0][0], arucos[i][3][0][1]
                 x2, y2 = arucos[i][3][1][0], arucos[i][3][1][1]
                 dist = math.sqrt((x2-x1)**2 + (y2-y1)**2)
-                return dist
-    else:
-        return 0
+                return int(dist)
+    return default
     
 def get_dist_height_circuit(arucos):
     if len(arucos) !=0:
@@ -294,7 +331,7 @@ def get_dist_width_circuit(arucos):
         return 0
     
 def set_param_frame(arucos):
-    dist_aruco = int(get_dist_grid(arucos))
+    dist_aruco = get_dist_grid(arucos)
     width, height = 0, 0
     if dist_aruco != 0:
         width = int(get_dist_width_circuit(arucos)/dist_aruco) + 1
@@ -314,70 +351,79 @@ def projected_image(frame, arucos, width, height):
     else:
         return frame
 
-def apply_grid_to_camera(grid_resolution):
+def apply_grid_to_camera(default_grid_res=25):
 
     # Open the camera
     cap = cv2.VideoCapture(0)  # Use 0 for the default camera
 
-    # Wait for 3 seconds
-    time.sleep(3)
+    print("Calibrating Map...")
 
-    # Capture a frame
-    ret, frame = cap.read()
+    while cap.isOpened():
+        # Capture a frame
+        ret, frame = cap.read()
 
-    # Check if the frame was successfully captured
-    if ret:
-        frame = apply_grid(frame, grid_resolution)[0]
-        map = apply_grid(frame, grid_resolution)[1]
-        # Save the captured frame as an image
-        cv2.imwrite("captured_frame.jpg", frame)
-        print("Frame registered successfully.")
+        # Check if the frame was successfully captured
+        if ret:
+            frame, arucos = get_arucos(cap.read()[1])
+            grid_resolution = get_dist_grid(arucos, default_grid_res)
+
+            frame, map = apply_grid(frame, grid_resolution)
+            # Save the captured frame as an image
+            cv2.imwrite("captured_frame.png", frame)
+            print("Map built with resolution: ", grid_resolution)
+
+
+            return map, grid_resolution
+        else:
+            print("Ret is False, trying again...")
 
     # Release the camera
     cap.release()
 
-    return map
+    
 
+if __name__ == "__main__":
+    cap = cv2.VideoCapture(0)
 
-cap = cv2.VideoCapture(0)
-
-grid_resolution = 25
-
-last_known_goal_pos = (0, 0)
-
-arucos = get_arucos(cap.read()[1])[1]
-
-width, height = 707, 1000
-
-while cap.isOpened():
-
+    last_known_goal_pos = (0, 0)
     robot_pos = (0, 0)
 
-    frame = cap.read()[1]
+    arucos = get_arucos(cap.read()[1])[1]
 
-    frame, arucos = get_arucos(frame)
+    grid_resolution = get_dist_grid(arucos)
 
-    frame, arucos, robot_pos, angle = show_robot(frame, arucos, grid_resolution)
+    width, height = 707, 10007
+    # width, height = set_param_frame(arucos)
 
-    robot_pos = center_in_grid(arucos, 95, grid_resolution)
+    while cap.isOpened():
+        frame = cap.read()[1]
 
-    goal_pos = center_in_grid(arucos, 99, grid_resolution)
+        frame, arucos = get_arucos(frame)
 
-    if goal_pos != (0, 0):
-        last_known_goal_pos = goal_pos
+        frame, arucos, robot_pos, angle = show_robot(frame, arucos, grid_resolution)
+        goal_pos = center_in_grid(arucos, 99, grid_resolution)
 
-    if check_if_goal_reached(arucos, robot_pos, last_known_goal_pos):
-        print('Goal reached')
-        break
+        if goal_pos != (0, 0):
+            last_known_goal_pos = goal_pos
 
-    cv2.imshow("Video Stream", frame)
-    
-    key = cv2.waitKey(1) & 0xFF
-    if key == ord("q"):
-        break
+        draw_goal(frame, arucos, grid_resolution)
 
-cv2.destroyAllWindows()
-cap.release()
+        if check_if_goal_reached(arucos, robot_pos, last_known_goal_pos):
+            print('Goal reached')
+            break
+
+        # frame = projected_image(frame, arucos, width, height)
+        cv2.imshow("Video Stream", frame)
+
+        print("Robot position: ", robot_pos)
+        print("Goal position: ", last_known_goal_pos)
+        
+        key = cv2.waitKey(1) & 0xFF
+        if key == ord("q"):
+            break
+
+    cv2.destroyAllWindows()
+    cap.release()
 
 
 

@@ -3,9 +3,9 @@ import numpy as np
 
 class Kalman:
     # Constants
-    THYMIO_WIDTH = 5.0
+    THYMIO_WIDTH = 2.5
     TIMESTEP = 0.1
-    SPEEDCONV = 0.1
+    SPEEDCONV = 0.05
 
     MOT_VAR = 6.25   # +- 5      --> sigma = 2.5 --> var = 6.25
     POS_VAR = 0.25   # +- 1 case --> sigma = 0.5 --> var = 0.25
@@ -29,14 +29,14 @@ class Kalman:
                             [0, self.dt, 0, 0, 1]]
                         )   
 
-    def kalman_filter(self, mot_input : Motors, mot_mes : Motors, pos_mes : Robot, dt = None):
+    def kalman_filter(self, mot_input : Motors, mot_mes : Motors, rob_mes : Robot, dt = None):
         """
         This function implement an EKF that estimates the current state 
         For this it uses the camera & motor speed measurement, the motor input and the previous state
         
         param mot_input        : input motor speed (Motor object)    
         param mot_mes          : measured motor speed (Motor object)
-        param pos_mes          : measured position via camera (Robot object)
+        param rob_mes          : measured position via camera (Robot object)
         param dt               : timestep (default = TIMESTEP of Kalman class)
         
         return mot_est         : new a posteriori motor speed estimation
@@ -53,21 +53,23 @@ class Kalman:
         a_priori_cov      = G @ self.cov @ G.T + self.Q
 
         ## Check if we have a camera measurement
-        if pos_mes.found == False:     # y = [S_mot_l, S_mot_r] = C @ [v, w, x, y, theta]
+        if rob_mes.found == False:     # y = [S_mot_l, S_mot_r] = C @ [v, w, x, y, theta]
             state_meas  = np.array([mot_mes.left, mot_mes.right])
 
             C = np.zeros((2,5))
-            C[0:2,0:2] = [[1/Kalman.SPEEDCONV, -Kalman.THYMIO_WIDTH/(2*Kalman.SPEEDCONV)],
-                          [1/Kalman.SPEEDCONV,  Kalman.THYMIO_WIDTH/(2*Kalman.SPEEDCONV)]]
+            C[0:2,0:2] = [[1/Kalman.SPEEDCONV,  -1/(Kalman.THYMIO_WIDTH * Kalman.SPEEDCONV * np.pi)],
+                          [1/Kalman.SPEEDCONV,  1/(Kalman.THYMIO_WIDTH * Kalman.SPEEDCONV * np.pi)]]
             
             R = np.diag(self.R[0:2,0:2])
             
         else:                   # y = [S_mot_l, S_mot_r, x_mes, y_mes, theta_mes] = C @ [v, w, x, y, theta]
-            state_meas  = np.array([mot_mes.left, mot_mes.right, pos_mes.position.x, pos_mes.position.y, pos_mes.direction])
+            mot_mes = np.array([mot_mes.left, mot_mes.right])
+            rob_mes = np.array([rob_mes.position.x, rob_mes.position.y, rob_mes.direction])
+            state_meas  = np.concatenate((mot_mes, rob_mes))
 
             C = np.eye(5)
-            C[0:2,0:2] = [[1/Kalman.SPEEDCONV, -Kalman.THYMIO_WIDTH/(2*Kalman.SPEEDCONV)],
-                          [1/Kalman.SPEEDCONV,  Kalman.THYMIO_WIDTH/(2*Kalman.SPEEDCONV)]]
+            C[0:2,0:2] = [[1/(2*Kalman.SPEEDCONV), -1/(Kalman.THYMIO_WIDTH * Kalman.SPEEDCONV * np.pi)],
+                          [1/(2*Kalman.SPEEDCONV),  1/(Kalman.THYMIO_WIDTH * Kalman.SPEEDCONV * np.pi)]]
             
             R = self.R        
 
@@ -96,7 +98,7 @@ class Kalman:
 # It is ruled by the following laws :
 
     #   Fw speed  v      : v+ = v + K(dmot_r + dmot_l) / 2             (K = speed/motor units conversion factor) 
-    #   Rot speed w      : w+ = w + K(dmot_r - dmot_l) / THYMIO_WIDTH  (dmot = new_mot_input - prev_mot_input)
+    #   Rot speed w      : w+ = w + K(dmot_r - dmot_l) / (pi * THYMIO_WIDTH)  (dmot = new_mot_input - prev_mot_input)
     #   Position X       : x+ = x + v*cos(theta)*dt
     #   Position Y       : y+ = y + v*sin(theta)*dt
     #   Direction theta  : theta+ = theta + w*dt
@@ -129,7 +131,7 @@ def motion_model(prev_state, input, dt):
     est_state = np.array([0.0]*5)
 
     est_state[0] = v + Kalman.SPEEDCONV * (dmot_r + dmot_l) / 2
-    est_state[1] = w + Kalman.SPEEDCONV * (dmot_r - dmot_l) / Kalman.THYMIO_WIDTH
+    est_state[1] = w + Kalman.SPEEDCONV * (dmot_r - dmot_l) / (Kalman.THYMIO_WIDTH * np.pi)
     est_state[2] = x + v * np.cos(theta) * dt
     est_state[3] = y + v * np.sin(theta) * dt
     est_state[4] = theta + w * dt

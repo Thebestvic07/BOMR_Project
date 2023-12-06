@@ -2,6 +2,7 @@
 from timeit import default_timer as timer
 from tdmclient import ClientAsync, aw
 import time
+import sys
 import cv2 as cv
 import threading
 import keyboard
@@ -16,9 +17,10 @@ from Codes.map import *
  
 
 ## Constants
-DEFAULT_GRID_RES = 25
+DEFAULT_GRID_RES = 20
 TIMESTEP = 0.1
-SIZE_THYM = 2.0  #size of thymio in number of grid
+SIZE_THYM = 2.5  #size of thymio in number of grid
+SPEEDCONV = 0.05
 LOST_TRESH = 10 #treshold to be considered lost
 REACH_TRESH = 3 #treshhold to reach current checkpoint
 GLOBAL_PLANNING = True
@@ -27,19 +29,21 @@ GOAL_REACHED = False
 
 ## Functions
 
-def run_camera(mes_pos : Robot, mes_goal: Point, grid_res=DEFAULT_GRID_RES):
+def run_camera(mes_pos : Robot, mes_goal: Point, camera : Camera, grid_res=DEFAULT_GRID_RES):
     '''
     Function that updates the global Mes_Robot variable with camera data every 0.1 seconds on average
 
     '''
-    cap = cv2.VideoCapture(1)
+    cap = cv2.VideoCapture(0)
 
-    arucos = get_arucos(cap.read()[1])[1]
-    width, height =  set_param_frame(arucos)
-    grid_resolution = get_dist_grid(arucos)
-    grid_res = grid_resolution if grid_resolution != None else grid_res
+    ret, frame = cap.read()
+    camera.update(ret)
+    
+    width, height = 707, 10007
+    # width, height = set_param_frame(arucos)
 
-
+    last_known_goal_pos = (0, 0)
+    robot_pos = (0, 0)
     while True:
         if cap.isOpened() == False:
             print("Error : video stream closed")
@@ -47,27 +51,25 @@ def run_camera(mes_pos : Robot, mes_goal: Point, grid_res=DEFAULT_GRID_RES):
             frame = cap.read()[1]
 
             frame, arucos = get_arucos(frame)
-            frame = projected_image(frame, arucos, width, height)
 
             frame, arucos, robot_pos, angle = show_robot(frame, arucos, grid_res)
-            goal_pos = get_goal_pos(arucos, grid_res)
+            goal_pos = center_in_grid(arucos, 99, grid_res)
 
-
-            if robot_pos != None :
-                robot_pos = Point(round(robot_pos[0]/grid_res), round(robot_pos[1]/grid_res))
+            if robot_pos != (0,0) :
+                robot_pos = Point(robot_pos[0], robot_pos[1])
                 mes_pos.update(Robot(robot_pos, angle, True))
             else:
                 mes_pos.update(Robot(mes_pos.position, mes_pos.direction, False))
-            
-            
-            goal_pos = tuple(round(pos/grid_resolution) for pos in goal_pos)        
+                    
             if goal_pos != (0, 0):
                 mes_goal.update(Point(goal_pos[0], goal_pos[1]))
-            
+            draw_goal(frame, arucos, grid_res)
+
+            # frame = projected_image(frame, arucos, width, height)
             cv2.imshow("Video Stream", frame)
 
-            print(f'Robot position: {robot_pos} and angle: {angle}')
-            print(f'Goal position: {goal_pos}')
+            # print(f'Robot position: {robot_pos} and angle: {angle}')
+            # print(f'Goal position: {goal_pos}')
             
         key = cv2.waitKey(1) & 0xFF
         if key == ord("q"):
@@ -86,6 +88,41 @@ def update_thymio(thymio : Thymio):
         time.sleep(0.095)
 
 
+def display(env : Environment, path : list, visitedNodes : list, grid_res=DEFAULT_GRID_RES):
+    '''
+    Function that displays the current state of the robot and the goal on the screen
+    '''
+    print("Starting display thread...")
+
+    # Update display
+    while True:
+        display = cv.imread(".\captured_frame.png")
+        if env.map.frame is not None:     #check if frame is not empty
+                #show goal position with red point
+                display = draw_circle(display, (env.goal.x, env.goal.y), grid_res, radius=10, color=(0, 0, 255), thickness=-1)
+            
+                #show robot position with green point + arrow
+                display = draw_circle(display, (env.robot.position.x, env.robot.position.y), grid_res, radius=5, color=(0, 255, 0), thickness=-1)
+                display = draw_arrow_from_robot(display, env.robot, grid_res)
+
+                if path != []:
+                    #show path with blue points 
+                    for point in path:
+                        display = draw_circle(display, (point.x, point.y), grid_res, radius=3, color=(255, 0, 0), thickness=-1) 
+                else:
+                    #show visited nodes with blue points 
+                    for point in visitedNodes:
+                        display = draw_circle(display, (point.x, point.y), grid_res, radius=2, color=(100, 0, 0), thickness=-1)
+                    
+        cv.imshow("Positions", display) 
+
+        key = cv2.waitKey(1) & 0xFF
+        if key == ord("q"):
+            break
+
+        time.sleep(0.1)
+
+
 ## Main
 
 if __name__ == "__main__":
@@ -96,8 +133,8 @@ if __name__ == "__main__":
     map = Map([], [], None)
 
     builtmap, grid_res = apply_grid_to_camera(DEFAULT_GRID_RES)
-    frame = cv.imread("Codes/captured_frame.jpg")
-    display = np.copy(frame)
+    frame = cv2.imread("captured_frame.png")
+    
     map.update(builtmap, frame)
 
     # Init variables
@@ -105,42 +142,54 @@ if __name__ == "__main__":
     Mes_goal = Point(0,0)           # Mes_goal = measured goal
     env = Environment(Mes_car, map, Mes_goal)       # env = estimated environment (updated with Kalman)
     input = Motors(0,0)             # input = motors command
-    path = []                       # path = list of checkpoints to reach
+    path = list()                   # path = list of checkpoints to reach
+    visitedNodes = list()           # visitedNodes = list of visited nodes during A* algorithm
+    camera = Camera()
 
     # Launch Threads
-    camera_thread = threading.Thread(target=run_camera, args=(Mes_car, Mes_goal, grid_res), daemon=True)
+    camera_thread = threading.Thread(target=run_camera, args=(Mes_car, Mes_goal, camera, grid_res), daemon=True)
     camera_thread.start()
 
     thymio_thread = threading.Thread(target=update_thymio, args=(thymio,), daemon=True)
     thymio_thread.start()
 
-    # Wait for camera to find Thymio
-    time.sleep(3)
+    display_thread = threading.Thread(target=display, args=(env, path, visitedNodes, grid_res), daemon=True)
+    display_thread.start()
+
+    # Wait for camera to find Thymio and goal
 
     while True:
-        if Mes_car.found:
-            print("Thymio found !")
-        if Mes_goal.x != 0 or Mes_goal.y != 0:
-            print("Goal found !")
-        if Mes_car.found and (Mes_goal.x != 0 or Mes_goal.y != 0):
+        if camera.Status == False:
+            print("Waiting for camera to start...")
+        else: 
+            if Mes_car.found:
+                print("Thymio found !")
+            if Mes_goal.x != 0 or Mes_goal.y != 0:
+                print("Goal found !")
+            if Mes_car.found and (Mes_goal.x != 0 or Mes_goal.y != 0):
+                print("Let's go !")
+                break
+
+            print("Waiting for camera to find Thymio and goal...")
+
+        # Check if escape key pressed
+        if keyboard.is_pressed('esc'):
             break
 
-        print("Waiting for camera to find Thymio and goal...")
         time.sleep(0.1)
 
     # Init Kalman filter
     time.sleep(3)
     kalman = Kalman(Mes_car)
 
-    # Init display
-    if env.map.frame != None:     #check if frame is not empty
-       cv2.circle(display, (grid_res*env.goal.x+grid_res//2, grid_res*env.goal.y+grid_res//2), 3, (0,0,255), -1)    #show goal position with red point
-       cv2.circle(display, (grid_res*env.robot.position.x+grid_res//2, grid_res*env.robot.position.y+grid_res//2), 3, (0,255,0), -1)
-       cv2.imshow("Positions", display) 
-
     # Init timer
     start = time.time()
     current = start
+
+    print("Starting main loop...")
+
+    print(f'Robot position: {(Mes_car.position.x, Mes_car.position.y)} and angle: {Mes_car.direction}')
+    print(f'Goal position: {(Mes_goal.x, Mes_goal.y)}')
 
     # Init loop
     while True:
@@ -153,14 +202,20 @@ if __name__ == "__main__":
 
         # Update env with Kalman
         if not GOAL_REACHED:
-            newcar = kalman.kalman_filter(input, thymio.motors, Mes_car.position, deltaT)
+            print(thymio.motors.left, "  ", thymio.motors.right)
+            newcar, newspeed = kalman.kalman_filter(input, thymio.motors, Mes_car, deltaT)
             env.update(Environment(newcar, map, Mes_goal))
         
         # Compute path if needed
         if GLOBAL_PLANNING:
             print("Planning...")
-            path = calculate_path(env, SIZE_THYM, False)
+
+            visitedNodes.clear()
+            path.clear()
+
+            calculate_path(env, path, visitedNodes, 0, False)
             GLOBAL_PLANNING = False
+            print("Planning finished !")
 
             # Update timer
             start = time.time()
@@ -168,7 +223,7 @@ if __name__ == "__main__":
             continue
         
         # Compute distance to next checkpoint and update accordingly 
-        if not GOAL_REACHED:
+        if not GOAL_REACHED and len(path) > 0:
             dist_to_checkpoint = env.robot.position.dist(path[0])
         else:
             dist_to_checkpoint = 0
@@ -176,6 +231,7 @@ if __name__ == "__main__":
         if dist_to_checkpoint >= LOST_TRESH:
             # If lost, recompute path on next iteration
             print("Lost !")
+            thymio.set_variable(Motors(0,0))
             GLOBAL_PLANNING = True
             continue
 
@@ -191,36 +247,33 @@ if __name__ == "__main__":
             time.sleep(0.2)
             GOAL_REACHED = True
 
-        if env.map.frame != None:     #check if frame is not empty
-            display = np.copy(env.map.frame)
-            cv2.circle(display, (grid_res*env.goal.x+grid_res//2, grid_res*env.goal.y+grid_res//2), 5, (0,0,255), -1)    #show goal position with red point
-            cv2.circle(display, (grid_res*env.robot.position.x+grid_res//2, grid_res*env.robot.position.y+grid_res//2), 5, (0,255,0), -1)
-            for point in path:
-                cv2.circle(display, (grid_res*point.x+grid_res//2, grid_res*point.y+grid_res//2), 2, (255, 0, 0), -1)   
-            cv2.imshow("Positions", display) 
-
         # Update motion
-        Kp_rot, Kp_fwd = controller(dist_to_checkpoint)
+        Kp_rot, Kp_fwd = controller(dist_to_checkpoint, speedConv = SPEEDCONV, thymio_width = SIZE_THYM)
 
-        motor_L, motor_R = compute_velocity(env.robot.position, path[0], Kp_rot, Kp_fwd, env.robot.direction, GOAL_REACHED)
+        motor_L, motor_R = compute_velocity(env.robot, path[0], Kp_rot, Kp_fwd, GOAL_REACHED)
+        print(f'motion motor: {motor_L}, {motor_R}')
 
         # Compute and set motors speed
-        obstacle_detected, v_obstacle = obstacle_avoidance(thymio.sensors[:4])
+        prox_array = thymio.sensors.prox
+        obstacle_detected, addLeft , addRight = obstacle_avoidance(prox_array)
         if obstacle_detected : 
-            motor_L += v_obstacle
-            motor_R -= v_obstacle
+            motor_L += addLeft
+            motor_R -= addRight
 
-        input = Motors(motor_L, motor_R)
+        print(f'obstacle contribution: {addLeft}, {addRight}')
+
+        input = Motors(int(motor_L), int(motor_R))
         thymio.set_variable(input)
-
-        # Check if escape key pressed
-        if keyboard.is_pressed('esc'):
-            break
 
         # Update timer
         start = time.time()
         current = start
 
+        # Check if escape key pressed
+        if keyboard.is_pressed('esc'):
+            break
+
     # Stop Thymio
     thymio.stop()
+    exit()
 

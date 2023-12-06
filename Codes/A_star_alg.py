@@ -1,9 +1,9 @@
-
+import time
 import math
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib import colors
-
+from .utils.data import *
 
 #functions taken from exercice session 5 and modifiied for non-square map 
 # and only for diagonal movements
@@ -24,7 +24,7 @@ def reconstruct_path(cameFrom, current):
         current=cameFrom[current]
     return total_path
 
-def A_Star(start, goal, h, coords, occupancy_grid):
+def A_Star(start, goal, h, coords, occupancy_grid, visitedNodes):
     """
     A* for 2D occupancy grid. Finds a path from start to goal.
     h is the heuristic function. h(n) estimates the cost to reach goal from node n.
@@ -32,6 +32,7 @@ def A_Star(start, goal, h, coords, occupancy_grid):
     :param goal_m: goal node (x, y)
     :param occupancy_grid: the grid map
     :param movement: select between 4-connectivity ('4N') and 8-connectivity ('8N', default)
+    
     :return: a tuple that contains: (the resulting path in meters, the resulting path in data array indices)
     """
     
@@ -101,6 +102,8 @@ def A_Star(start, goal, h, coords, occupancy_grid):
 
         openSet.remove(current)
         closedSet.append(current)
+        visitedNodes.append(Point(current[0], current[1]))
+        time.sleep(0.05)
         
         #for each neighbor of current:
         for dx, dy, deltacost in movements:
