@@ -69,7 +69,10 @@ def controller(distance, slowing_distance = 1.0, speedConv = 0.05, thymio_width 
     rotspeed_target = 0.5
 
   else:
-    Kp_angle = 1.2 / speedConv
-    Kp_dist = 1.0 / speedConv
+    fwdspeed_target = 1.5
+    rotspeed_target = 1.0
+
+  fwd_order = K * fwdspeed_target / (2 * speedConv)
+  rot_order = K * rotspeed_target / (thymio_width * speedConv * np.pi)
 
   return rot_order, fwd_order
