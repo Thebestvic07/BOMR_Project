@@ -11,9 +11,10 @@ from PIL import Image
 import time
 
 
-#only to plot
+
 def create_empty_plot(max_x, max_y):
     """
+    Function to plot grid with matplot
     Helper function to create a figure of the desired dimensions & grid
     
     :param max_val: dimension of the map along the x and y dimensions
@@ -41,7 +42,7 @@ def create_empty_plot(max_x, max_y):
     return fig, ax
 
 def create_grid(env):
-    "Create the grid with obstacles from the environment"
+    "Create the grid with obstacles, star and goal from the environment"
     max_x = 0
     max_y = 0
     for corners in env.map.corners:
@@ -84,7 +85,6 @@ def convert_path(path, finalpath):
     for i in range(np.size(path,1)):
         pt = Point(path[0][i] + 0.5, path[1][i] + 0.5)
         finalpath.append(pt)
-
 
 
 def calculate_path(env, finalpath, extended_obs, visitedNodes, size_thym, PLOT=False):
@@ -141,3 +141,64 @@ def calculate_path(env, finalpath, extended_obs, visitedNodes, size_thym, PLOT=F
 
     return path
 
+
+def calculate_path_png(start, goal, image_path, size_thym, PLOT=True):
+    """
+    Overloaded function to be able to call A* independently with a png as entry
+    
+    start and goal: given as tupples in image coordinate system
+    image_path: string path of the desired map as image
+    size_thym: size of the thymio in grid length to avoid obstacles collision
+    """
+    finalpath = list()
+    extended_obs = list()
+    visitedNodes = list()
+
+    im = Image.open(image_path, 'r')
+    #convert to greyscale
+    im = im.convert('L')
+    grid = np.array(im)
+    grid = (grid != 255)*1       #take black pixels as obstacles and sets as 1
+    max_x, max_y = grid.shape[0], grid.shape[1] # Size of the map
+
+    occupancy_grid = map_without_collision(grid, extended_obs, size_thym)
+    
+    # List of all coordinates in the grid
+    x,y = np.mgrid[0:max_x:1, 0:max_y:1]
+    pos = np.empty(x.shape + (2,))
+    pos[:, :, 0] = x; pos[:, :, 1] = y
+    pos = np.reshape(pos, (x.shape[0]*x.shape[1], 2))
+    coords = list([(int(x[0]), int(x[1])) for x in pos])
+
+    # Define the heuristic, here = distance to goal ignoring obstacles
+    h = np.linalg.norm(pos - goal, axis=-1)
+    h = dict(zip(coords, h))
+
+    # Run the A* algorithm
+    path, visitedNodes = A_Star(start, goal, h, coords, occupancy_grid, visitedNodes)
+    path = np.array(path).reshape(-1, 2).transpose()
+
+    visitedNodes = np.array(visitedNodes).reshape(-1, 2).transpose()
+
+    convert_path(path, finalpath)
+
+
+    if PLOT:
+        cmap = colors.ListedColormap(['white', 'red']) # Select the colors with which to display obstacles and free cells
+
+        fig, ax = create_empty_plot(max_x, max_y)
+        # Displaying the map
+        ax.imshow(grid.transpose(), cmap=cmap)
+        plt.title("Map : free cells in white, occupied cells in red")
+        # # Displaying the map
+        fig_astar, ax_astar = create_empty_plot(max_x, max_y)
+        ax_astar.imshow(occupancy_grid.transpose(), cmap=cmap)
+
+        # Plot the best path found and the list of visited nodes
+        ax_astar.scatter(visitedNodes[0], visitedNodes[1], marker="o", color = 'orange')
+        ax_astar.plot(path[0], path[1], marker="o", color = 'blue')
+        ax_astar.scatter(start[0], start[1], marker="o", color = 'green', s=200)
+        ax_astar.scatter(goal[0], goal[1], marker="o", color = 'purple', s=200)
+
+    return path
+    
