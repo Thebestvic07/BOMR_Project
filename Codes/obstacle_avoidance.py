@@ -74,7 +74,7 @@ def position_temp_obstacle(prox_horizontal, rob : Robot, temp_obstacles):
             obs = Point(np.sqrt(16)*np.cos(rob.direction)+rob.position.x, np.sqrt(16)*np.sin(rob.direction)+rob.position.y)
             temp_obstacles.append(obs)
         else:
-            obs = Point(np.sqrt(9)*np.cos(rob.direction)+rob.position.x, -np.sqrt(9)*np.sin(rob.direction)+rob.position.y)
+            obs = Point(np.sqrt(9)*np.cos(rob.direction)+rob.position.x, np.sqrt(9)*np.sin(rob.direction)+rob.position.y)
             temp_obstacles.append(obs)
     elif prox_horizontal[3] > 2200:
         if prox_horizontal[3] > 3200:
