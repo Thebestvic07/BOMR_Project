@@ -141,3 +141,8 @@ def calculate_path(env, finalpath, extended_obs, visitedNodes, size_thym, PLOT=F
 
     return path
 
+
+# def calculate_path(start, goal, image_path, size_thym, PLOT=True):
+#     """
+#     Overloaded function to be able to call A* independently with a png as entry
+#     """

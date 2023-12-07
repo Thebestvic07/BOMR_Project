@@ -1,9 +1,4 @@
-<<<<<<< HEAD
 _pycache_/
 utils/_pycache_/
 data.py
 Kalman.py
-=======
-__pycache__/
-.vscode
->>>>>>> 2b2a4af8874827a357adb60a4b13397befc20220
