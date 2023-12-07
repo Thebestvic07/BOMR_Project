@@ -62,8 +62,8 @@ def calculate_path(env, finalpath, extended_obs, visitedNodes, size_thym, PLOT=F
        out: path given in a list of Points 
     """
 
-    grid, start, goal = create_grid(env)
-    occupancy_grid = map_without_collision(grid, extended_obs, size_thym)
+    grid, start, goal = create_grid(env)            #Converts useful infos from environment
+    occupancy_grid = map_without_collision(grid, extended_obs, size_thym)        #add half the size of Thymio
     max_x, max_y = grid.shape[0], grid.shape[1] # Size of the map
     # List of all coordinates in the grid
     x,y = np.mgrid[0:max_x:1, 0:max_y:1]
@@ -82,7 +82,7 @@ def calculate_path(env, finalpath, extended_obs, visitedNodes, size_thym, PLOT=F
 
     closedSet = np.array(closedSet).reshape(-1, 2).transpose()
 
-    convert_path(path, finalpath)
+    convert_path(path, finalpath)       #convert to a list of Points
 
     # Plot the best path found and the list of visited nodes
     if PLOT:
@@ -107,7 +107,7 @@ def calculate_path(env, finalpath, extended_obs, visitedNodes, size_thym, PLOT=F
 
 def calculate_path_png(start, goal, image_path, size_thym, PLOT=True):
     """
-    Overloaded function to be able to call A* independently with a png as entry
+    Function to be able to call A* independently with a png as entry
     
     start and goal: given as tupples in image coordinate system
     image_path: string path of the desired map as image
