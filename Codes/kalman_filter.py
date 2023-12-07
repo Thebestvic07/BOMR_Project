@@ -57,19 +57,19 @@ class Kalman:
             state_meas  = np.array([mot_mes.left, mot_mes.right])
 
             C = np.zeros((2,5))
-            C[0:2,0:2] = [[1/Kalman.SPEEDCONV,  -1/(Kalman.THYMIO_WIDTH * Kalman.SPEEDCONV * np.pi)],
-                          [1/Kalman.SPEEDCONV,  1/(Kalman.THYMIO_WIDTH * Kalman.SPEEDCONV * np.pi)]]
+            C[0:2,0:2] = [[1/Kalman.SPEEDCONV,  1/(Kalman.THYMIO_WIDTH * Kalman.SPEEDCONV * np.pi)],
+                          [1/Kalman.SPEEDCONV,  -1/(Kalman.THYMIO_WIDTH * Kalman.SPEEDCONV * np.pi)]]
             
             R = np.diag(self.R[0:2,0:2])
             
         else:                   # y = [S_mot_l, S_mot_r, x_mes, y_mes, theta_mes] = C @ [v, w, x, y, theta]
             mot_mes = np.array([mot_mes.left, mot_mes.right])
-            rob_mes = np.array([rob_mes.position.x, rob_mes.position.y, rob_mes.direction])
+            rob_mes = np.array([rob_mes.position.x, rob_mes.position.y, angle_correction(rob_mes.direction)])
             state_meas  = np.concatenate((mot_mes, rob_mes))
 
             C = np.eye(5)
-            C[0:2,0:2] = [[1/(2*Kalman.SPEEDCONV), -1/(Kalman.THYMIO_WIDTH * Kalman.SPEEDCONV * np.pi)],
-                          [1/(2*Kalman.SPEEDCONV),  1/(Kalman.THYMIO_WIDTH * Kalman.SPEEDCONV * np.pi)]]
+            C[0:2,0:2] = [[1/(2*Kalman.SPEEDCONV),  1/(Kalman.THYMIO_WIDTH * Kalman.SPEEDCONV * np.pi)],
+                          [1/(2*Kalman.SPEEDCONV), -1/(Kalman.THYMIO_WIDTH * Kalman.SPEEDCONV * np.pi)]]
             
             R = self.R        
 
@@ -131,10 +131,10 @@ def motion_model(prev_state, input, dt):
     est_state = np.array([0.0]*5)
 
     est_state[0] = v + Kalman.SPEEDCONV * (dmot_r + dmot_l) / 2
-    est_state[1] = w + Kalman.SPEEDCONV * (dmot_r - dmot_l) / (Kalman.THYMIO_WIDTH * np.pi)
+    est_state[1] = w + Kalman.SPEEDCONV * (-dmot_r + dmot_l) / (Kalman.THYMIO_WIDTH * np.pi)
     est_state[2] = x + v * np.cos(theta) * dt
     est_state[3] = y + v * np.sin(theta) * dt
-    est_state[4] = theta + w * dt
+    est_state[4] = angle_correction(theta + w * dt)
 
     ## Computing the Jacobian
     Jacobian = np.array(
@@ -148,3 +148,12 @@ def motion_model(prev_state, input, dt):
     )  
 
     return est_state, Jacobian
+
+def angle_correction(angle):
+    """
+    This function corrects the angle to be between -pi and pi
+        param angle : angle to correct
+
+        return corrected angle
+    """
+    return (angle + np.pi) % (2 * np.pi) - np.pi

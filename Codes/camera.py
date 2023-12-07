@@ -44,6 +44,19 @@ def replace_white():
 def replace_black():
     return cv2.imread('black_image.png')
 
+def show_grid(image, grid_resolution):
+    # Get image dimensions
+    height, width = image.shape[:2]
+
+    # Draw vertical grid lines
+    for x in range(0, width, grid_resolution):
+        cv2.line(image, (x, 0), (x, height), (0, 100, 0), 1)
+
+    # Draw horizontal grid lines
+    for y in range(0, height, grid_resolution):
+        cv2.line(image, (0, y), (width, y), (0, 100, 0), 1)
+    
+    return image
 
 # Change the image according to the percentage of black pixels
 def change_cell(image):
@@ -70,14 +83,13 @@ def apply_grid(image, grid_resolution):
     x_cells = int(width / grid_resolution)
     y_cells = int(height / grid_resolution)
 
-    #creat a 2d list of grid cells
+    # Creating a 2D list of grid cells
     map = [[0 for _ in range(y_cells)] for _ in range(x_cells)]
     obstacles = []
     internal_map = [[0 for _ in range(y_cells)] for _ in range(x_cells)]
 
+    # Initializing variables
     obstacles = []
-
-
     new_image = list(range(y_cells))
     final_image = list(range(x_cells))
 
@@ -90,6 +102,7 @@ def apply_grid(image, grid_resolution):
             # Crop the image to the bounding box
             cell_content = image[y_min:y_max, x_min:x_max]
 
+            # Check if the cell is an obstacle
             if is_black_cell(cell_content):
                 map[x][y] = 0
                 obstacles.append(Point(x,y))
@@ -99,27 +112,42 @@ def apply_grid(image, grid_resolution):
             # Store the cell content in the grid
             internal_map[x][y] = change_cell(cell_content)
 
+            # Add the cell in the column
             if x==0:
                 new_image[y] = internal_map[x][y]
             else:
                 new_image[y] = np.hstack((new_image[y], internal_map[x][y]))
         
+        # Add the column in the image
         if y==0:
             final_image = new_image[y]
 
         if y!=0:
             final_image = np.vstack((final_image,new_image[y]))
 
+    # # Draw vertical grid lines
+    # for x in range(x_cells):
+    #     cv2.line(final_image, (x, 0), (x, height), (0, 255, 0), 1)
+
+    # # Draw horizontal grid lines
+    # for y in range(y_cells):
+    #     cv2.line(final_image, (0, y), (width, y), (0, 255, 0), 1)
+
+    # Create the map object
     map = Map([Point(0,0), Point(width,0), Point(width, height), Point(0,height)], obstacles)
     return final_image, map
 
-
+# Set aruco detector
 def set_aruco():
+    # Set the dictionary of aruco markers to 4x4_100
     dictionary = cv2.aruco.getPredefinedDictionary(cv2.aruco.DICT_4X4_100)
+    # Set the parameters for the detector
     parameters =  cv2.aruco.DetectorParameters()
+    # Create the detector
     detector = cv2.aruco.ArucoDetector(dictionary, parameters)
     return detector
 
+# Get information about the arucos
 def get_info_arucos(corners, ids, image):
 
     arucos = []
@@ -130,18 +158,20 @@ def get_info_arucos(corners, ids, image):
         for (markerCorner, markerID) in zip(corners, ids):
             corners = markerCorner.reshape((4, 2))
             (topLeft, topRight, bottomRight, bottomLeft) = corners
- 
+
+            # Get the sides of the aruco
             topRight = (int(topRight[0]), int(topRight[1]))
             bottomRight = (int(bottomRight[0]), int(bottomRight[1]))
             bottomLeft = (int(bottomLeft[0]), int(bottomLeft[1]))
             topLeft = (int(topLeft[0]), int(topLeft[1]))
- 
+
+            # Get the center of the aruco
             cX = int((topLeft[0] + bottomRight[0]) / 2.0)
             cY = int((topLeft[1] + bottomRight[1]) / 2.0)
             
+            # Store the information about the aruco
             arucos.append((cX, cY, markerID, (bottomLeft, topLeft)))
             
- 
     return image, arucos
 
 def robot_center_is(arucos):
@@ -202,7 +232,6 @@ def draw_arrow(image, arucos, angle, length=80, color=(0, 255, 0), thickness=3):
                  # Use cv2.arrowedLine to draw the arrow on the image
                 image = cv2.arrowedLine(image, arrow_start, arrow_end, color, thickness)
                 break
-            
     return image
 
 def draw_arrow_from_robot(image, robot, grid_res, length=80, color=(0, 255, 0), thickness=3):
