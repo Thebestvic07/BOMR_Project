@@ -109,7 +109,8 @@ def display(env : Environment, path : list, visitedNodes : list, map : Map, grid
                 display = draw_circle(display, (env.goal.x, env.goal.y), grid_res, radius=10, color=(0, 0, 255), thickness=-1)
             
                 #show robot position with green point + arrow
-                display = draw_circle(display, (env.robot.position.x, env.robot.position.y), grid_res, radius=5, color=(0, 255, 0), thickness=-1)
+                circle_pos = (int(env.robot.position.x*grid_res)/grid_res, int(env.robot.position.y*grid_res)/grid_res)
+                display = draw_circle(display, circle_pos, grid_res, radius=5, color=(0, 255, 0), thickness=-1)
                 display = draw_arrow_from_robot(display, env.robot, grid_res)
 
                 #show obstacles with grey points
@@ -280,6 +281,7 @@ if __name__ == "__main__":
                 continue    
             else : 
                 print("Path finished !")
+                Global_planning = True
                 continue
 
         ## Update motion

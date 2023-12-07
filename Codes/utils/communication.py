@@ -33,6 +33,9 @@ class Thymio:
     
         except:
             print("Connection to Thymio failed!")
+            print("Retrying in 5 seconds...")
+            
+            self.start()
 
     def stop(self):
         """
