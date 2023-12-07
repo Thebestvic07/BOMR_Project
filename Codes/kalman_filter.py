@@ -1,4 +1,4 @@
-from .utils.data import *
+from utils.data import *
 import numpy as np
 from scipy.signal import butter, lfilter
 
@@ -28,7 +28,13 @@ class Kalman:
                             [self.dt, 0, 0, 1, 0],
                             [0, self.dt, 0, 0, 1]]
                         ) 
-        # self.Q = np.diag([Kalman.MOT_VAR, Kalman.MOT_VAR/Kalman.THYMIO_WIDTH, self.dt, self.dt, self.dt])
+        self.Q = np.array([ [1, 0 , self.dt, self.dt, 0],    
+                            [0, 2/Kalman.THYMIO_WIDTH, 0, 0, self.dt],
+                            [self.dt, 0, 1, 0, 0],
+                            [self.dt, 0, 0, 1, 0],
+                            [0, self.dt, 0, 0, 1]]
+                        ) 
+
 
     def kalman_filter(self, mot_input : Motors, mot_mes : Motors, cam_mes : Robot, dt = None):
         """

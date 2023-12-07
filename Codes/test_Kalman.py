@@ -17,8 +17,8 @@ thetavar = 0.01
 dt = 0.1
 
 memory = []
-# Cam = False
-Cam = True
+Cam = False
+# Cam = True
 
 # #Testing Motion Model
 # input = np.array([0,0])
