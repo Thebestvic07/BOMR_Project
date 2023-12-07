@@ -1,6 +1,5 @@
-#local avoidance with obstacle identification via capteurs
+#local avoidance with obstacle identification via prox sensors
 #we used the potential field Navigation
-#return the velocity of the robot in the local frame
 
 import numpy as np
 from .utils.data import *
@@ -47,11 +46,13 @@ def obstacle_avoidance(prox_horizontal):
     else:
        print("error in obstacle avoidance")
 
+
+
 def position_temp_obstacle(prox_horizontal, rob : Robot, temp_obstacles):
     """
     Determine the positions of temporary obstacles detected with the front sensors to the thymio
 
-    change a list of Points with the positions of obstacles in the coordinate system of thymio 
+    Modify a list of Points with the positions of obstacles in the coordinate system of thymio in order to display them 
 
     """
     

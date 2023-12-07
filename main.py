@@ -1,3 +1,14 @@
+##########################################################################################################################################
+############################################# Description: Main file of the project  #####################################################
+##########################################################################################################################################
+
+## Disclaimer : The code may need some adjustement to work on your computer.
+#   - the camera may not be recognized as the first camera of the computer
+#   - the black and white threshold may need to be adjusted
+
+## Usage : In order to quit the code once launched you need to press the 'esc' key on your keyboard and 'q' in the camera windows
+
+
 ## Lib import
 from timeit import default_timer as timer
 from tdmclient import ClientAsync, aw
@@ -29,9 +40,9 @@ GLOBAL_PLANNING = True
 GOAL_REACHED = False
 GO_NEXT = False
 
-
 #####################################################################################################################
-## Functions
+#####################################################################################################################
+## Threads Functions
 
 def run_camera(mes_pos : Robot, mes_goal: Point, camera : Camera, grid_res=DEFAULT_GRID_RES):
     '''
