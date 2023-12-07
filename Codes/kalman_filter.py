@@ -1,4 +1,4 @@
-from utils.data import *
+from .utils.data import *
 import numpy as np
 from scipy.signal import butter, lfilter
 

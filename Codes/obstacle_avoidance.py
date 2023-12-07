@@ -57,21 +57,21 @@ def position_temp_obstacle(prox_horizontal, rob : Robot, temp_obstacles):
     
     if prox_horizontal[0] > 1700:
         if prox_horizontal[0] > 2700:
-            obs = Point(np.sqrt(8)*np.cos(rob.direction-np.pi/4)+rob.position.x, -np.sqrt(8)*np.sin(rob.direction-np.pi/4)+rob.position.y)
+            obs = Point(np.sqrt(8)*np.cos(rob.direction-np.pi/4)+rob.position.x, np.sqrt(8)*np.sin(rob.direction-np.pi/4)+rob.position.y)
             temp_obstacles.append(obs)
         else:
-            obs = Point(np.sqrt(13)*np.cos(rob.direction-np.pi/3)+rob.position.x, -np.sqrt(13)*np.sin(rob.direction-np.pi/3)+rob.position.y)
+            obs = Point(np.sqrt(13)*np.cos(rob.direction-np.pi/3)+rob.position.x, np.sqrt(13)*np.sin(rob.direction-np.pi/3)+rob.position.y)
             temp_obstacles.append(obs)
     elif prox_horizontal[1] > 2200:
         if prox_horizontal[1] > 3200:
-            obs = Point(np.sqrt(10)*np.cos(rob.direction-np.pi*0.4)+rob.position.x, -np.sqrt(10)*np.sin(rob.direction-np.pi*0.4)+rob.position.y)
+            obs = Point(np.sqrt(10)*np.cos(rob.direction-np.pi*0.4)+rob.position.x, np.sqrt(10)*np.sin(rob.direction-np.pi*0.4)+rob.position.y)
             temp_obstacles.append(obs)
         else:
-            obs = Point(np.sqrt(17)*np.cos(rob.direction-np.pi*0.42)+rob.position.x, -np.sqrt(17)*np.sin(rob.direction-np.pi*0.42)+rob.position.y)
+            obs = Point(np.sqrt(17)*np.cos(rob.direction-np.pi*0.42)+rob.position.x, np.sqrt(17)*np.sin(rob.direction-np.pi*0.42)+rob.position.y)
             temp_obstacles.append(obs)
-    elif prox_horizontal[0] > 2600:
+    elif prox_horizontal[2] > 2600:
         if prox_horizontal[0] > 3800:
-            obs = Point(np.sqrt(16)*np.cos(rob.direction)+rob.position.x, -np.sqrt(16)*np.sin(rob.direction)+rob.position.y)
+            obs = Point(np.sqrt(16)*np.cos(rob.direction)+rob.position.x, np.sqrt(16)*np.sin(rob.direction)+rob.position.y)
             temp_obstacles.append(obs)
         else:
             obs = Point(np.sqrt(9)*np.cos(rob.direction)+rob.position.x, -np.sqrt(9)*np.sin(rob.direction)+rob.position.y)
