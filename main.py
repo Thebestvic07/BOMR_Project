@@ -128,6 +128,11 @@ def display(env : Environment, path : list, visitedNodes : list, map : Map, grid
                     #show visited nodes with yellow points 
                     for point in visitedNodes:
                         display = draw_circle(display, (point.x, point.y), grid_res, radius=2, color=(0, 200, 200), thickness=-1)
+                
+                #show temporary obstacles detected with proximity sensors
+                for point in temp_obstacles:
+                    display = display = draw_circle(display, (point.x, point.y), grid_res, radius=2, color=(120, 0, 120), thickness=-1)
+
                     
         cv.imshow("Positions", display) 
 
@@ -163,6 +168,7 @@ if __name__ == "__main__":
     visitedNodes = list()           # visitedNodes = list of visited nodes during A* algorithm
     camera = Camera()
     extended_obs = list()           # extended_obs = list of obstacles with extended size of the robot
+    temp_obstacles = list()
 
     # Launch Threads
     camera_thread = threading.Thread(target=run_camera, args=(Mes_car, Mes_goal, camera, grid_res), daemon=True)
@@ -295,8 +301,14 @@ if __name__ == "__main__":
             prox_array = thymio.sensors.prox
             obstacle_detected, addLeft , addRight = obstacle_avoidance(prox_array)
             if obstacle_detected : 
+                temp_obstacles.clear()
                 motor_L +=  addLeft
                 motor_R +=  addRight
+                position_temp_obstacles(prox_array, env.robot, temp_obstacles)
+                if len(path) > 1:           #update to the next checkpoint 
+                    path.pop(0)
+                    continue
+                
 
             input = Motors(int(motor_L), int(motor_R))
             # input = Motors(0,0)
