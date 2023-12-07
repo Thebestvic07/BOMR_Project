@@ -22,13 +22,13 @@ TIMESTEP = 0.075 #time between each iteration of the main loop
 SIZE_THYM = 2.5  #size of thymio in number of grid
 SPEEDCONV = 0.05
 BASESPEED = 50
-LOST_TRESH = 6 #treshold to be considered lost
+LOST_TRESH = 5 #treshold to be considered lost
 REACH_TRESH = 3 #treshhold to reach current checkpoint
-REACH_GOAL_TRESH = 1 #treshhold to reach current checkpoint
+REACH_GOAL_TRESH = 1 #treshhold to reach final goal
 GLOBAL_PLANNING = True
 GOAL_REACHED = False
 
-
+#####################################################################################################################
 ## Functions
 
 def run_camera(mes_pos : Robot, mes_goal: Point, camera : Camera, grid_res=DEFAULT_GRID_RES):
@@ -79,6 +79,7 @@ def run_camera(mes_pos : Robot, mes_goal: Point, camera : Camera, grid_res=DEFAU
 
         time.sleep(0.095)
 
+#####################################################################################################################
 
 def update_thymio(thymio : Thymio):
     '''
@@ -89,6 +90,7 @@ def update_thymio(thymio : Thymio):
         thymio.read_variables()
         time.sleep(0.075)
 
+#####################################################################################################################
 
 def display(env : Environment, path : list, visitedNodes : list, map : Map, grid_res=DEFAULT_GRID_RES):
     '''
@@ -134,7 +136,8 @@ def display(env : Environment, path : list, visitedNodes : list, map : Map, grid
 
         time.sleep(0.2)
 
-
+#####################################################################################################################
+#####################################################################################################################
 ## Main
 
 if __name__ == "__main__":
@@ -194,7 +197,7 @@ if __name__ == "__main__":
 
     # Init Kalman filter
     time.sleep(3)
-    kalman = Kalman(Mes_car)
+    kalman = Kalman(Mes_car, TIMESTEP)
 
     # Init timer
     start = time.time()
@@ -204,7 +207,7 @@ if __name__ == "__main__":
 
     print(f'Robot position: {(Mes_car.position.x, Mes_car.position.y)} and angle: {Mes_car.direction}')
     print(f'Goal position: {(Mes_goal.x, Mes_goal.y)}')
-
+#####################################################################################################################
     # Init loop
     while True:
         # Update motion every 0.1 seconds
@@ -216,7 +219,6 @@ if __name__ == "__main__":
 
         # Update env with Kalman
         if not GOAL_REACHED:
-            print(thymio.motors.left, "  ", thymio.motors.right)
             newcar, newspeed = kalman.kalman_filter(input, thymio.motors, Mes_car, deltaT)
             env.update(Environment(newcar, env.map, Mes_goal))
         
@@ -261,13 +263,15 @@ if __name__ == "__main__":
             time.sleep(0.2)
             while True:
                 print("Press 'esc' to end programm")
-                if key == ord('esc'):
-                    sys.exit()
-                time.sleep(0.1)
+                if keyboard.is_pressed('esc'):
+                    display_thread.join()
+                    thymio_thread.join()
+                    camera_thread.join()
+                    thymio.stop()
+                    exit()
+                    
+                time.sleep(0.3)
                 
-            
-
-
         if dist_to_checkpoint <= REACH_TRESH:
             # If sufficiently close to checkpoint, remove it from path and go to next one 
             print("Checkpoint reached !")
@@ -293,6 +297,7 @@ if __name__ == "__main__":
                 motor_R +=  addRight
 
             input = Motors(int(motor_L), int(motor_R))
+            # input = Motors(0,0)
             thymio.set_variable(input)
 
         # Update timer
@@ -301,8 +306,10 @@ if __name__ == "__main__":
 
         # Check if escape key pressed
         if keyboard.is_pressed('esc'):
+            thymio.set_variable(Motors(0,0))
             break
 
+#####################################################################################################################
     # Stop Thymio
     display_thread.join()
     thymio_thread.join()

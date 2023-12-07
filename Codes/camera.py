@@ -8,7 +8,7 @@ from .utils.data import *
 def is_black_cell(image):
     # Know if the grid cell contains more than 1/8 pixels who are black
     image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-    _, binary_mask = cv2.threshold(image, 110, 255, cv2.THRESH_BINARY)
+    _, binary_mask = cv2.threshold(image, 95, 255, cv2.THRESH_BINARY)
 
     # Calculate the percentage of black pixels in the image
     total_pixels = image.size
@@ -16,7 +16,7 @@ def is_black_cell(image):
     percentage_black = (black_pixels / total_pixels) * 100
 
     # Set the threshold percentage
-    threshold_percentage = 30  # Adjust this threshold as needed
+    threshold_percentage = 10  # Adjust this threshold as needed
 
     # Check if the percentage of black pixels exceeds the threshold
     if percentage_black > threshold_percentage:

@@ -1,4 +1,4 @@
-from utils.data import *
+from .utils.data import *
 import numpy as np
 from scipy.signal import butter, lfilter
 
@@ -12,22 +12,23 @@ class Kalman:
     POS_VAR = 0.125  # +- 0.5 case --> sigma = 0.25 --> var = 0.125
     DIR_VAR = 0.01   # +- 5°     --> sigma = 2.5° --> sigma = 0.1 rad --> var = 0.01
 
-    def __init__(self, initial_state: Robot) -> None:
+    def __init__(self, initial_state: Robot, timestep = TIMESTEP) -> None:
         # Initialize memory variables for kalman filter
         self.robot = initial_state
         self.speed = [0.0,0.0]
         self.input = Motors(0,0)
         self.cov  = np.diag([0,0,Kalman.POS_VAR,Kalman.POS_VAR,Kalman.DIR_VAR])
-        self.dt = Kalman.TIMESTEP
+        self.dt = timestep
 
         # covariance matrices
         self.R = np.diag([Kalman.MOT_VAR, Kalman.MOT_VAR, Kalman.POS_VAR, Kalman.POS_VAR, Kalman.DIR_VAR])
-        self.Q = np.array([ [Kalman.MOT_VAR, 0 , self.dt, self.dt, 0],    
-                            [0, Kalman.MOT_VAR/Kalman.THYMIO_WIDTH, 0, 0, self.dt],
+        self.Q = np.array([ [5, 0 , self.dt, self.dt, 0],    
+                            [0, 5/Kalman.THYMIO_WIDTH, 0, 0, self.dt],
                             [self.dt, 0, 1, 0, 0],
                             [self.dt, 0, 0, 1, 0],
-                            [0, self.dt, 0, 0, 1/Kalman.THYMIO_WIDTH]]
+                            [0, self.dt, 0, 0, 1]]
                         ) 
+        #self.Q = np.diag([Kalman.MOT_VAR, Kalman.MOT_VAR/Kalman.THYMIO_WIDTH, self.dt, self.dt, self.dt])
 
     def kalman_filter(self, mot_input : Motors, mot_mes : Motors, cam_mes : Robot, dt = None):
         """

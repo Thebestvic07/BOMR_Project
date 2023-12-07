@@ -18,7 +18,7 @@ def compute_angle_error(position, checkpoint, thymio_direction):
   """
   goal_angle = np.arctan2( (checkpoint.y - position.y), (checkpoint.x - position.x))
 
-  thymio_direction = (-thymio_direction + np.pi) % (2 * np.pi) - np.pi    ## + thymio_direction because it's defined in the negative sense of trigo
+  thymio_direction = -thymio_direction      # Because the y-axis is inverted in the simulation
 
   angle_error = goal_angle - thymio_direction         
   angle_error = (angle_error + np.pi) % (2 * np.pi) - np.pi
