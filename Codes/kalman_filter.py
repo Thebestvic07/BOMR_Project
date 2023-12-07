@@ -1,35 +1,35 @@
-from .utils.data import *
+from utils.data import *
 import numpy as np
+from scipy.signal import butter, lfilter
 
 class Kalman:
     # Constants
     THYMIO_WIDTH = 2.5
     TIMESTEP = 0.1
-    SPEEDCONV = 0.05
+    SPEEDCONV = 0.01 # 1 motor unit = 0.1 case/s
 
     MOT_VAR = 6.25   # +- 5      --> sigma = 2.5 --> var = 6.25
-    POS_VAR = 0.25   # +- 1 case --> sigma = 0.5 --> var = 0.25
+    POS_VAR = 0.125  # +- 0.5 case --> sigma = 0.25 --> var = 0.125
     DIR_VAR = 0.01   # +- 5°     --> sigma = 2.5° --> sigma = 0.1 rad --> var = 0.01
-     
 
     def __init__(self, initial_state: Robot) -> None:
         # Initialize memory variables for kalman filter
         self.robot = initial_state
         self.speed = [0.0,0.0]
         self.input = Motors(0,0)
-        self.cov  = np.diag([0,0,0.1,0.1,0.1])
+        self.cov  = np.diag([0,0,Kalman.POS_VAR,Kalman.POS_VAR,Kalman.DIR_VAR])
         self.dt = Kalman.TIMESTEP
 
         # covariance matrices
         self.R = np.diag([Kalman.MOT_VAR, Kalman.MOT_VAR, Kalman.POS_VAR, Kalman.POS_VAR, Kalman.DIR_VAR])
-        self.Q = np.array([ [Kalman.SPEEDCONV, 0 , self.dt, self.dt, 0],    
-                            [0, Kalman.SPEEDCONV/Kalman.THYMIO_WIDTH, 0, 0, self.dt],
+        self.Q = np.array([ [Kalman.MOT_VAR, 0 , self.dt, self.dt, 0],    
+                            [0, Kalman.MOT_VAR/Kalman.THYMIO_WIDTH, 0, 0, self.dt],
                             [self.dt, 0, 1, 0, 0],
                             [self.dt, 0, 0, 1, 0],
-                            [0, self.dt, 0, 0, 1]]
-                        )   
+                            [0, self.dt, 0, 0, 1/Kalman.THYMIO_WIDTH]]
+                        ) 
 
-    def kalman_filter(self, mot_input : Motors, mot_mes : Motors, rob_mes : Robot, dt = None):
+    def kalman_filter(self, mot_input : Motors, mot_mes : Motors, cam_mes : Robot, dt = None):
         """
         This function implement an EKF that estimates the current state 
         For this it uses the camera & motor speed measurement, the motor input and the previous state
@@ -52,26 +52,8 @@ class Kalman:
         a_priori_state, G = motion_model(state_prev, input, dt)    
         a_priori_cov      = G @ self.cov @ G.T + self.Q
 
-        ## Check if we have a camera measurement
-        if rob_mes.found == False:     # y = [S_mot_l, S_mot_r] = C @ [v, w, x, y, theta]
-            state_meas  = np.array([mot_mes.left, mot_mes.right])
-
-            C = np.zeros((2,5))
-            C[0:2,0:2] = [[1/Kalman.SPEEDCONV,  1/(Kalman.THYMIO_WIDTH * Kalman.SPEEDCONV * np.pi)],
-                          [1/Kalman.SPEEDCONV,  -1/(Kalman.THYMIO_WIDTH * Kalman.SPEEDCONV * np.pi)]]
-            
-            R = np.diag(self.R[0:2,0:2])
-            
-        else:                   # y = [S_mot_l, S_mot_r, x_mes, y_mes, theta_mes] = C @ [v, w, x, y, theta]
-            mot_mes = np.array([mot_mes.left, mot_mes.right])
-            rob_mes = np.array([rob_mes.position.x, rob_mes.position.y, angle_correction(rob_mes.direction)])
-            state_meas  = np.concatenate((mot_mes, rob_mes))
-
-            C = np.eye(5)
-            C[0:2,0:2] = [[1/(2*Kalman.SPEEDCONV),  1/(Kalman.THYMIO_WIDTH * Kalman.SPEEDCONV * np.pi)],
-                          [1/(2*Kalman.SPEEDCONV), -1/(Kalman.THYMIO_WIDTH * Kalman.SPEEDCONV * np.pi)]]
-            
-            R = self.R        
+        ## Measurement model
+        state_meas, C, R = measurement_model(mot_mes, cam_mes, self.R)
 
         ## Gain and innovation computation
         K = a_priori_cov @ C.T @ np.linalg.inv(C @ a_priori_cov @ C.T + R)  
@@ -97,8 +79,8 @@ class Kalman:
 ## Our motion model is non linear.
 # It is ruled by the following laws :
 
-    #   Fw speed  v      : v+ = v + K(dmot_r + dmot_l) / 2             (K = speed/motor units conversion factor) 
-    #   Rot speed w      : w+ = w + K(dmot_r - dmot_l) / (pi * THYMIO_WIDTH)  (dmot = new_mot_input - prev_mot_input)
+    #   Fw speed  v      : v+ = v + K(dmot_l + dmot_r) / 2             (K = speed/motor units conversion factor) 
+    #   Rot speed w      : w+ = w + 2K(dmot_l - dmot_r) / THYMIO_WIDTH  (dmot = new_mot_input - prev_mot_input)
     #   Position X       : x+ = x + v*cos(theta)*dt
     #   Position Y       : y+ = y + v*sin(theta)*dt
     #   Direction theta  : theta+ = theta + w*dt
@@ -130,8 +112,8 @@ def motion_model(prev_state, input, dt):
     ## Estimating the new state
     est_state = np.array([0.0]*5)
 
-    est_state[0] = v + Kalman.SPEEDCONV * (dmot_r + dmot_l) / 2
-    est_state[1] = w + Kalman.SPEEDCONV * (-dmot_r + dmot_l) / (Kalman.THYMIO_WIDTH * np.pi)
+    est_state[0] = v +     Kalman.SPEEDCONV * (dmot_l + dmot_r) / 2
+    est_state[1] = w + 2 * Kalman.SPEEDCONV * (dmot_l - dmot_r) / Kalman.THYMIO_WIDTH 
     est_state[2] = x + v * np.cos(theta) * dt
     est_state[3] = y + v * np.sin(theta) * dt
     est_state[4] = angle_correction(theta + w * dt)
@@ -149,6 +131,33 @@ def motion_model(prev_state, input, dt):
 
     return est_state, Jacobian
 
+
+def measurement_model(mot_mes, rob_mes, R):
+    ## Check if we have a camera measurement
+    if rob_mes.found == False:     # Pas de caméra -->  y = [S_mot_l, S_mot_r] = C @ [v, w, x, y, theta]
+        state_meas  = np.array([mot_mes.left, mot_mes.right])
+
+        C = np.zeros((2,5))
+        C[0:2,0:2] = [[2/Kalman.SPEEDCONV,  Kalman.THYMIO_WIDTH/(2 * Kalman.SPEEDCONV)],
+                      [2/Kalman.SPEEDCONV, -Kalman.THYMIO_WIDTH/(2 * Kalman.SPEEDCONV)]]
+        
+        R = np.diag(R[0:2,0:2])
+        
+    else:                         # Pas de caméra -->   y = [S_mot_l, S_mot_r, x_mes, y_mes, theta_mes] = C @ [v, w, x, y, theta]
+        state_meas  = np.array([mot_mes.left, mot_mes.right, rob_mes.position.x, rob_mes.position.y, angle_correction(rob_mes.direction)])
+
+        C = np.zeros((5,5))
+        C[0:2,0:2] = [[2/Kalman.SPEEDCONV,  Kalman.THYMIO_WIDTH/(2 * Kalman.SPEEDCONV)],
+                      [2/Kalman.SPEEDCONV, -Kalman.THYMIO_WIDTH/(2 * Kalman.SPEEDCONV)]]
+        C[2,2] = 1.0
+        C[3,3] = 1.0
+        C[4,4] = 1.0
+        
+        R = R
+
+    return state_meas, C, R
+
+
 def angle_correction(angle):
     """
     This function corrects the angle to be between -pi and pi
@@ -157,3 +166,4 @@ def angle_correction(angle):
         return corrected angle
     """
     return (angle + np.pi) % (2 * np.pi) - np.pi
+
