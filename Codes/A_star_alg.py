@@ -1,12 +1,15 @@
 import time
 import math
 import numpy as np
-import matplotlib.pyplot as plt
-from matplotlib import colors
+# import matplotlib.pyplot as plt
+# from matplotlib import colors
 from .utils.data import *
 
-#functions taken from exercice session 5 and modifiied for non-square map 
-# and only for diagonal movements
+"""
+functions taken from exercice session 5 and modifiied for non-square map, 
+only for diagonal movements and update researched positions in real time for display
+"""
+
 
 def reconstruct_path(cameFrom, current):
     """
@@ -31,29 +34,27 @@ def A_Star(start, goal, h, coords, occupancy_grid, visitedNodes):
     :param start: start node (x, y)
     :param goal_m: goal node (x, y)
     :param occupancy_grid: the grid map
-    :param movement: select between 4-connectivity ('4N') and 8-connectivity ('8N', default)
-    
     :return: a tuple that contains: (the resulting path in meters, the resulting path in data array indices)
     """
     
-    # -----------------------------------------
-    # DO NOT EDIT THIS PORTION OF CODE
-    # -----------------------------------------
-    
+    # Check exceptions and returns empty sets in those cases
+    #  
     # Check if the start and goal are within the boundaries of the map
     max_x, max_y = occupancy_grid.shape[0], occupancy_grid.shape[1] # Size of the map
     for point in [start, goal]:
         if point[0]<0  or point[1]<0 or point[0]>=max_x or point[1]>=max_y:
             print("start or end goal not contained in the map")
+            return [], []
     
     # check if start and goal nodes correspond to free spaces
     if occupancy_grid[start[0], start[1]]:
         print("Thymio is on an obstacle, please move it to a free space")
+        return [], []
 
     if occupancy_grid[goal[0], goal[1]]:
         print("Goal is on an obstacle, please move it to a free space")
+        return [], []
     
-    # get the possible movements corresponding to the selected connectivity
     
     #set movement as 8 possibilities
     s2 = math.sqrt(2)
@@ -67,10 +68,8 @@ def A_Star(start, goal, h, coords, occupancy_grid, visitedNodes):
                 (1, -1, s2)]
     
     
-    # --------------------------------------------------------------------------------------------
-    # A* Algorithm implementation - feel free to change the structure / use another pseudo-code
-    # --------------------------------------------------------------------------------------------
-    
+    #A* algorithm
+
     # The set of visited nodes that need to be (re-)expanded, i.e. for which the neighbors need to be explored
     # Initially, only the start node is known.
     openSet = [start]

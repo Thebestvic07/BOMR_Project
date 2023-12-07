@@ -110,7 +110,7 @@ def display(env : Environment, path : list, visitedNodes : list, map : Map, grid
                 display = draw_circle(display, (env.robot.position.x, env.robot.position.y), grid_res, radius=5, color=(0, 255, 0), thickness=-1)
                 display = draw_arrow_from_robot(display, env.robot, grid_res)
 
-                #show obstacles with yellow points
+                #show obstacles with grey points
                 for obs in env.map.obstacles:
                     display = draw_circle(display, (obs.x, obs.y), grid_res, radius=2, color=(100, 100, 100), thickness=-1)
 
@@ -122,7 +122,7 @@ def display(env : Environment, path : list, visitedNodes : list, map : Map, grid
                     for point in path:
                         display = draw_circle(display, (point.x, point.y), grid_res, radius=3, color=(255, 0, 0), thickness=-1) 
                 else:
-                    #show visited nodes with blue points 
+                    #show visited nodes with yellow points 
                     for point in visitedNodes:
                         display = draw_circle(display, (point.x, point.y), grid_res, radius=2, color=(0, 200, 200), thickness=-1)
                     
@@ -222,6 +222,8 @@ if __name__ == "__main__":
         
         # Compute path if needed
         if GLOBAL_PLANNING:
+            thymio.set_variable(Motors(0,0))
+            time.sleep(0.2)
             print("Planning...")
 
             visitedNodes.clear()
@@ -229,9 +231,11 @@ if __name__ == "__main__":
             extended_obs.clear()
 
             calculate_path(env, path, extended_obs, visitedNodes, SIZE_THYM, False)
-            GLOBAL_PLANNING = False
-            print("Planning finished !")
-
+            if len(path) != 0:
+                GLOBAL_PLANNING = False
+                print("Planning finished !")
+            
+            
             # Update timer
             start = time.time() 
             current = start
@@ -255,7 +259,14 @@ if __name__ == "__main__":
             thymio.set_variable(Lights([0,255,0]))   # Light up the Thymio !
             thymio.set_variable(Motors(0,0))
             time.sleep(0.2)
-            break
+            while True:
+                print("Press 'esc' to end programm")
+                if key == ord('esc'):
+                    sys.exit()
+                time.sleep(0.1)
+                
+            
+
 
         if dist_to_checkpoint <= REACH_TRESH:
             # If sufficiently close to checkpoint, remove it from path and go to next one 
@@ -268,21 +279,21 @@ if __name__ == "__main__":
                 continue
 
         ## Update motion
+        if not GLOBAL_PLANNING:
+            # PD controller
+            current = time.time()
+            dt = current - start
+            motor_L, motor_R, theta_err = controller(env.robot, path[0], BASESPEED, theta_err, dt, GOAL_REACHED)
 
-        # PD controller
-        current = time.time()
-        dt = current - start
-        motor_L, motor_R, theta_err = controller(env.robot, path[0], BASESPEED, theta_err, dt, GOAL_REACHED)
+            # Obstacle avoidance
+            prox_array = thymio.sensors.prox
+            obstacle_detected, addLeft , addRight = obstacle_avoidance(prox_array)
+            if obstacle_detected : 
+                motor_L +=  addLeft
+                motor_R +=  addRight
 
-        # Obstacle avoidance
-        prox_array = thymio.sensors.prox
-        obstacle_detected, addLeft , addRight = obstacle_avoidance(prox_array)
-        if obstacle_detected : 
-            motor_L +=  addLeft
-            motor_R +=  addRight
-
-        input = Motors(int(motor_L), int(motor_R))
-        thymio.set_variable(input)
+            input = Motors(int(motor_L), int(motor_R))
+            thymio.set_variable(input)
 
         # Update timer
         start = time.time()
