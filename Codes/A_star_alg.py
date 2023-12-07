@@ -1,15 +1,12 @@
 import time
 import math
 import numpy as np
-# import matplotlib.pyplot as plt
-# from matplotlib import colors
 from .utils.data import *
 
 """
 functions taken from exercice session 5 and modifiied for non-square map, 
 only for diagonal movements and update researched positions in real time for display
 """
-
 
 def reconstruct_path(cameFrom, current):
     """
