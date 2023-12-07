@@ -1,5 +1,3 @@
-
-
 import math
 import numpy as np
 import matplotlib.pyplot as plt
@@ -10,36 +8,6 @@ from .A_star_alg import *
 from PIL import Image
 #import time
 
-
-
-def create_empty_plot(max_x, max_y):
-    """
-    Function to plot grid with matplot
-    Helper function to create a figure of the desired dimensions & grid
-    
-    :param max_val: dimension of the map along the x and y dimensions
-    :return: the fig and ax objects.
-    """
-    fig, ax = plt.subplots(figsize=(7,7))
-    
-
-    major_x_ticks = np.arange(0, max_x+1, 5)
-    minor_x_ticks = np.arange(0, max_x+1, 1)
-
-    major_y_ticks = np.arange(0, max_y+1, 5)
-    minor_y_ticks = np.arange(0, max_y+1, 1)
-
-    ax.set_xticks(major_x_ticks)
-    ax.set_xticks(minor_x_ticks, minor=True)
-    ax.set_yticks(major_y_ticks)
-    ax.set_yticks(minor_y_ticks, minor=True)
-    ax.grid(which='minor', alpha=0.2)
-    ax.grid(which='major', alpha=0.5)
-    ax.set_ylim([-1,max_y])
-    ax.set_xlim([-1,max_x])
-    ax.grid(True)
-    
-    return fig, ax
 
 def create_grid(env):
     "Create the grid with obstacles, star and goal from the environment"
@@ -63,6 +31,7 @@ def create_grid(env):
 
 def map_without_collision(grid, extended_obs, size_thym):
     "add half size of thymio to the obstacles to avoid collisions"
+
     map = grid.copy()
     max_x, max_y = grid.shape[0], grid.shape[1] # Size of the map
 
@@ -78,6 +47,7 @@ def map_without_collision(grid, extended_obs, size_thym):
                             extended_obs.append(Point(i+x,j+y))
 
     return map
+
 
 def convert_path(path, finalpath):
     "convert the path given in as an array of size(n,2) as a list of Points"
@@ -114,15 +84,7 @@ def calculate_path(env, finalpath, extended_obs, visitedNodes, size_thym, PLOT=F
 
     convert_path(path, finalpath)
 
-    # obstacles = list()
-    # for x in range(max_x):
-    #     for y in range(max_y):
-    #         if occupancy_grid[x,y] == 1:
-    #             obstacles.append(Point(x,y))
-
-    # env.map.update(Map(env.map.corners, obstacles, env.map.frame))
-
-    #On peut enlever cette partie PLOT en soi, et modifier les variables d'entrés
+    # Plot the best path found and the list of visited nodes
     if PLOT:
         cmap = colors.ListedColormap(['white', 'red']) # Select the colors with which to display obstacles and free cells
 
@@ -141,8 +103,6 @@ def calculate_path(env, finalpath, extended_obs, visitedNodes, size_thym, PLOT=F
         ax_astar.scatter(goal[0], goal[1], marker="o", color = 'purple', s=200)
 
     return path
-
-
 
 
 def calculate_path_png(start, goal, image_path, size_thym, PLOT=True):
@@ -185,7 +145,6 @@ def calculate_path_png(start, goal, image_path, size_thym, PLOT=True):
 
     convert_path(path, finalpath)
 
-
     if PLOT:
         cmap = colors.ListedColormap(['white', 'red']) # Select the colors with which to display obstacles and free cells
 
@@ -204,4 +163,35 @@ def calculate_path_png(start, goal, image_path, size_thym, PLOT=True):
         ax_astar.scatter(goal[0], goal[1], marker="o", color = 'purple', s=200)
 
     return path
+
+
+
+def create_empty_plot(max_x, max_y):
+    """
+    Function to plot grid with matplot
+    Helper function to create a figure of the desired dimensions & grid
+    
+    :param max_val: dimension of the map along the x and y dimensions
+    :return: the fig and ax objects.
+    """
+    fig, ax = plt.subplots(figsize=(7,7))
+    
+
+    major_x_ticks = np.arange(0, max_x+1, 5)
+    minor_x_ticks = np.arange(0, max_x+1, 1)
+
+    major_y_ticks = np.arange(0, max_y+1, 5)
+    minor_y_ticks = np.arange(0, max_y+1, 1)
+
+    ax.set_xticks(major_x_ticks)
+    ax.set_xticks(minor_x_ticks, minor=True)
+    ax.set_yticks(major_y_ticks)
+    ax.set_yticks(minor_y_ticks, minor=True)
+    ax.grid(which='minor', alpha=0.2)
+    ax.grid(which='major', alpha=0.5)
+    ax.set_ylim([-1,max_y])
+    ax.set_xlim([-1,max_x])
+    ax.grid(True)
+    
+    return fig, ax
     
