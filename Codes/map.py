@@ -8,7 +8,7 @@ from matplotlib import colors
 from .utils.data import *
 from .A_star_alg import *
 from PIL import Image
-import time
+#import time
 
 
 
@@ -102,7 +102,7 @@ def calculate_path(env, finalpath, extended_obs, visitedNodes, size_thym, PLOT=F
     pos = np.reshape(pos, (x.shape[0]*x.shape[1], 2))
     coords = list([(int(x[0]), int(x[1])) for x in pos])
 
-    # Define the heuristic, here = distance to goal ignoring obstacles
+    # Define the heuristic, here = euclidian distance to goal ignoring obstacles
     h = np.linalg.norm(pos - goal, axis=-1)
     h = dict(zip(coords, h))
 
@@ -122,6 +122,7 @@ def calculate_path(env, finalpath, extended_obs, visitedNodes, size_thym, PLOT=F
 
     # env.map.update(Map(env.map.corners, obstacles, env.map.frame))
 
+    #On peut enlever cette partie PLOT en soi, et modifier les variables d'entrés
     if PLOT:
         cmap = colors.ListedColormap(['white', 'red']) # Select the colors with which to display obstacles and free cells
 
@@ -140,6 +141,8 @@ def calculate_path(env, finalpath, extended_obs, visitedNodes, size_thym, PLOT=F
         ax_astar.scatter(goal[0], goal[1], marker="o", color = 'purple', s=200)
 
     return path
+
+
 
 
 def calculate_path_png(start, goal, image_path, size_thym, PLOT=True):
