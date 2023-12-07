@@ -107,7 +107,7 @@ def calculate_path(env, finalpath, extended_obs, visitedNodes, size_thym, PLOT=F
 
 def calculate_path_png(start, goal, image_path, size_thym, PLOT=True):
     """
-    Overloaded function to be able to call A* independently with a png as entry
+    Function to be able to call A* independently with a png as entry
     
     start and goal: given as tupples in image coordinate system
     image_path: string path of the desired map as image
