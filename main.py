@@ -22,11 +22,12 @@ TIMESTEP = 0.075 #time between each iteration of the main loop
 SIZE_THYM = 2.5  #size of thymio in number of grid
 SPEEDCONV = 0.05
 BASESPEED = 50
-LOST_TRESH = 5 #treshold to be considered lost
-REACH_TRESH = 3 #treshhold to reach current checkpoint
+LOST_TRESH = 6   #treshold to be considered lost
+REACH_TRESH = 3  #treshhold to reach current checkpoint
 REACH_GOAL_TRESH = 1 #treshhold to reach final goal
 GLOBAL_PLANNING = True
 GOAL_REACHED = False
+GO_NEXT = False
 
 
 #####################################################################################################################
@@ -132,7 +133,7 @@ def display(env : Environment, path : list, visitedNodes : list, map : Map, grid
                 
                 #show temporary obstacles detected with proximity sensors
                 for point in temp_obstacles:
-                    display = display = draw_circle(display, (point.x, point.y), grid_res, radius=2, color=(120, 0, 120), thickness=-1)
+                    display = display = draw_circle(display, (point.x, point.y), grid_res, radius=2, color=(0, 100, 200), thickness=-1)
 
                     
         cv.imshow("Positions", display) 
@@ -302,14 +303,16 @@ if __name__ == "__main__":
             prox_array = thymio.sensors.prox
             obstacle_detected, addLeft , addRight = obstacle_avoidance(prox_array)
             if obstacle_detected : 
-                temp_obstacles.clear()
                 motor_L +=  addLeft
                 motor_R +=  addRight
                 position_temp_obstacle(prox_array, env.robot, temp_obstacles)
-                if len(path) > 1:           #update to the next checkpoint 
+                if len(path) > 1 and GO_NEXT:           #update to the next checkpoint 
                     path.pop(0)
+                    GO_NEXT = False
                     continue
-                
+            else:
+                GO_NEXT = True   
+                temp_obstacles.clear()             
 
             input = Motors(int(motor_L), int(motor_R))
             # input = Motors(0,0)
