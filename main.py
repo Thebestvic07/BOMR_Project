@@ -28,6 +28,7 @@ REACH_GOAL_TRESH = 1 #treshhold to reach final goal
 GLOBAL_PLANNING = True
 GOAL_REACHED = False
 
+
 #####################################################################################################################
 ## Functions
 
@@ -304,7 +305,7 @@ if __name__ == "__main__":
                 temp_obstacles.clear()
                 motor_L +=  addLeft
                 motor_R +=  addRight
-                position_temp_obstacles(prox_array, env.robot, temp_obstacles)
+                position_temp_obstacle(prox_array, env.robot, temp_obstacles)
                 if len(path) > 1:           #update to the next checkpoint 
                     path.pop(0)
                     continue
