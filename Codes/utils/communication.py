@@ -67,7 +67,6 @@ class Thymio:
             raise "unknown command"
         
         aw(self.node.set_variables(v))
-        self.read_variables()
 
         
     def read_variables(self, data = None):

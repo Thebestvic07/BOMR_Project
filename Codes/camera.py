@@ -125,13 +125,13 @@ def apply_grid(image, grid_resolution):
         if y!=0:
             final_image = np.vstack((final_image,new_image[y]))
 
-    # Draw vertical grid lines
-    for x in range(x_cells):
-        cv2.line(final_image, (x, 0), (x, height), (0, 255, 0), 1)
+    # # Draw vertical grid lines
+    # for x in range(x_cells):
+    #     cv2.line(final_image, (x, 0), (x, height), (0, 255, 0), 1)
 
-    # Draw horizontal grid lines
-    for y in range(y_cells):
-        cv2.line(final_image, (0, y), (width, y), (0, 255, 0), 1)
+    # # Draw horizontal grid lines
+    # for y in range(y_cells):
+    #     cv2.line(final_image, (0, y), (width, y), (0, 255, 0), 1)
 
     # Create the map object
     map = Map([Point(0,0), Point(width,0), Point(width, height), Point(0,height)], obstacles)

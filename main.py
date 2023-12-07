@@ -18,12 +18,12 @@ from Codes.map import *
 
 ## Constants
 DEFAULT_GRID_RES = 19 #resolution of the grid in pixels
-TIMESTEP = 0.1
+TIMESTEP = 0.075 #time between each iteration of the main loop
 SIZE_THYM = 2.5  #size of thymio in number of grid
 SPEEDCONV = 0.05
-BASESPEED = 75
+BASESPEED = 50
 LOST_TRESH = 6 #treshold to be considered lost
-REACH_TRESH = 2 #treshhold to reach current checkpoint
+REACH_TRESH = 3 #treshhold to reach current checkpoint
 REACH_GOAL_TRESH = 1 #treshhold to reach current checkpoint
 GLOBAL_PLANNING = True
 GOAL_REACHED = False
@@ -87,7 +87,7 @@ def update_thymio(thymio : Thymio):
     '''
     while True:
         thymio.read_variables()
-        time.sleep(0.095)
+        time.sleep(0.075)
 
 
 def display(env : Environment, path : list, visitedNodes : list, map : Map, grid_res=DEFAULT_GRID_RES):
@@ -132,7 +132,7 @@ def display(env : Environment, path : list, visitedNodes : list, map : Map, grid
         if key == ord("q"):
             break
 
-        time.sleep(0.1)
+        time.sleep(0.2)
 
 
 ## Main
@@ -190,7 +190,6 @@ if __name__ == "__main__":
         if keyboard.is_pressed('esc'):
             break
             
-
         time.sleep(0.1)
 
     # Init Kalman filter
@@ -219,7 +218,7 @@ if __name__ == "__main__":
         if not GOAL_REACHED:
             print(thymio.motors.left, "  ", thymio.motors.right)
             newcar, newspeed = kalman.kalman_filter(input, thymio.motors, Mes_car, deltaT)
-            env.update(Environment(newcar, map, Mes_goal))
+            env.update(Environment(newcar, env.map, Mes_goal))
         
         # Compute path if needed
         if GLOBAL_PLANNING:
@@ -229,7 +228,7 @@ if __name__ == "__main__":
             path.clear()
             extended_obs.clear()
 
-            calculate_path(env, path, extended_obs, visitedNodes, int(SIZE_THYM), False)
+            calculate_path(env, path, extended_obs, visitedNodes, SIZE_THYM, False)
             GLOBAL_PLANNING = False
             print("Planning finished !")
 
@@ -247,7 +246,6 @@ if __name__ == "__main__":
         if dist_to_checkpoint >= LOST_TRESH:
             # If lost, recompute path on next iteration
             print("Lost !")
-            thymio.set_variable(Motors(0,0))
             GLOBAL_PLANNING = True
             continue
 
@@ -255,14 +253,16 @@ if __name__ == "__main__":
         if env.robot.position.dist(env.goal) <= REACH_GOAL_TRESH:
             print("Goal reached !")
             thymio.set_variable(Lights([0,255,0]))   # Light up the Thymio !
+            thymio.set_variable(Motors(0,0))
             time.sleep(0.2)
-            GOAL_REACHED = True
+            break
 
         if dist_to_checkpoint <= REACH_TRESH:
             # If sufficiently close to checkpoint, remove it from path and go to next one 
             print("Checkpoint reached !")
             if len(path) > 1:
                 path.pop(0)  
+                continue    
             else : 
                 print("Path finished !")
                 continue
@@ -293,9 +293,9 @@ if __name__ == "__main__":
             break
 
     # Stop Thymio
-    display_thread.stop()
-    camera_thread.stop()
-    thymio_thread.stop()
+    display_thread.join()
+    thymio_thread.join()
+    camera_thread.join()
     thymio.stop()
     exit()
 
