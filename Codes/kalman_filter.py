@@ -22,13 +22,13 @@ class Kalman:
 
         # covariance matrices
         self.R = np.diag([Kalman.MOT_VAR, Kalman.MOT_VAR, Kalman.POS_VAR, Kalman.POS_VAR, Kalman.DIR_VAR])
-        self.Q = np.array([ [5, 0 , self.dt, self.dt, 0],    
-                            [0, 5/Kalman.THYMIO_WIDTH, 0, 0, self.dt],
+        self.Q = np.array([ [1, 0 , self.dt, self.dt, 0],    
+                            [0, 2/Kalman.THYMIO_WIDTH, 0, 0, self.dt],
                             [self.dt, 0, 1, 0, 0],
                             [self.dt, 0, 0, 1, 0],
                             [0, self.dt, 0, 0, 1]]
                         ) 
-        #self.Q = np.diag([Kalman.MOT_VAR, Kalman.MOT_VAR/Kalman.THYMIO_WIDTH, self.dt, self.dt, self.dt])
+
 
     def kalman_filter(self, mot_input : Motors, mot_mes : Motors, cam_mes : Robot, dt = None):
         """
@@ -43,7 +43,7 @@ class Kalman:
         return mot_est         : new a posteriori motor speed estimation
         return pos_est         : new a posteriori position estimation 
         """
-        ## Transposing arguments into arrays
+        ## Transposing arguments into arrays for easier manipulation
         state_prev = np.array([self.speed[0], self.speed[1], self.robot.position.x, self.robot.position.y, self.robot.direction])
         input = np.array([mot_input.left - self.input.left, mot_input.right - self.input.right])
         
@@ -81,7 +81,7 @@ class Kalman:
 # It is ruled by the following laws :
 
     #   Fw speed  v      : v+ = v + K(dmot_l + dmot_r) / 2             (K = speed/motor units conversion factor) 
-    #   Rot speed w      : w+ = w + 2K(dmot_l - dmot_r) / THYMIO_WIDTH  (dmot = new_mot_input - prev_mot_input)
+    #   Rot speed w      : w+ = w + K(dmot_l - dmot_r) / THYMIO_WIDTH  (dmot = new_mot_input - prev_mot_input)
     #   Position X       : x+ = x + v*cos(theta)*dt
     #   Position Y       : y+ = y + v*sin(theta)*dt
     #   Direction theta  : theta+ = theta + w*dt
@@ -113,8 +113,8 @@ def motion_model(prev_state, input, dt):
     ## Estimating the new state
     est_state = np.array([0.0]*5)
 
-    est_state[0] = v +     Kalman.SPEEDCONV * (dmot_l + dmot_r) / 2
-    est_state[1] = w + 2 * Kalman.SPEEDCONV * (dmot_l - dmot_r) / Kalman.THYMIO_WIDTH 
+    est_state[0] = v +   Kalman.SPEEDCONV * (dmot_l + dmot_r) / 2
+    est_state[1] = w + Kalman.SPEEDCONV * (dmot_l - dmot_r) / Kalman.THYMIO_WIDTH 
     est_state[2] = x + v * np.cos(theta) * dt
     est_state[3] = y + v * np.sin(theta) * dt
     est_state[4] = angle_correction(theta + w * dt)
@@ -134,13 +134,24 @@ def motion_model(prev_state, input, dt):
 
 
 def measurement_model(mot_mes, rob_mes, R):
+    """
+    This function returns the measured state and the measurement model and covariance  
+        param mot_mes : measured motor speed (Motor object)
+        param rob_mes : measured position via camera (Robot object)
+        param R       : default covariance matrix of the measurement
+
+        return state_meas : measured state as an array
+        return C          : measurement model s.t. y = C @ x 
+        return R          : covariance matrix of the measurement
+    """
     ## Check if we have a camera measurement
     if rob_mes.found == False:     # Pas de caméra -->  y = [S_mot_l, S_mot_r] = C @ [v, w, x, y, theta]
-        state_meas  = np.array([mot_mes.left, mot_mes.right])
+        print("No camera !")
 
+        state_meas  = np.array([mot_mes.left, mot_mes.right])
         C = np.zeros((2,5))
-        C[0:2,0:2] = [[2/Kalman.SPEEDCONV,  Kalman.THYMIO_WIDTH/(2 * Kalman.SPEEDCONV)],
-                      [2/Kalman.SPEEDCONV, -Kalman.THYMIO_WIDTH/(2 * Kalman.SPEEDCONV)]]
+        C[0:2,0:2] = [[1/Kalman.SPEEDCONV, -1/Kalman.SPEEDCONV],
+                      [1/Kalman.SPEEDCONV,  1/Kalman.SPEEDCONV]]
         
         R = np.diag(R[0:2,0:2])
         
@@ -148,8 +159,8 @@ def measurement_model(mot_mes, rob_mes, R):
         state_meas  = np.array([mot_mes.left, mot_mes.right, rob_mes.position.x, rob_mes.position.y, angle_correction(rob_mes.direction)])
 
         C = np.zeros((5,5))
-        C[0:2,0:2] = [[2/Kalman.SPEEDCONV,  Kalman.THYMIO_WIDTH/(2 * Kalman.SPEEDCONV)],
-                      [2/Kalman.SPEEDCONV, -Kalman.THYMIO_WIDTH/(2 * Kalman.SPEEDCONV)]]
+        C[0:2,0:2] = [[1/Kalman.SPEEDCONV, -1/Kalman.SPEEDCONV],
+                      [1/Kalman.SPEEDCONV,  1/Kalman.SPEEDCONV]]
         C[2,2] = 1.0
         C[3,3] = 1.0
         C[4,4] = 1.0

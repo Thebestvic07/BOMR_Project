@@ -1,3 +1,14 @@
+##########################################################################################################################################
+############################################# Description: Main file of the project  #####################################################
+##########################################################################################################################################
+
+## Disclaimer : The code may need some adjustement to work on your computer.
+#   - the camera may not be recognized as the first camera of the computer
+#   - the black and white threshold may need to be adjusted
+
+## Usage : In order to quit the code once launched you need to press the 'esc' key on your keyboard and 'q' in the camera windows
+
+
 ## Lib import
 from timeit import default_timer as timer
 from tdmclient import ClientAsync, aw
@@ -22,14 +33,16 @@ TIMESTEP = 0.075 #time between each iteration of the main loop
 SIZE_THYM = 2.5  #size of thymio in number of grid
 SPEEDCONV = 0.05
 BASESPEED = 50
-LOST_TRESH = 5 #treshold to be considered lost
-REACH_TRESH = 3 #treshhold to reach current checkpoint
+LOST_TRESH = 6   #treshold to be considered lost
+REACH_TRESH = 3  #treshhold to reach current checkpoint
 REACH_GOAL_TRESH = 1 #treshhold to reach final goal
 GLOBAL_PLANNING = True
 GOAL_REACHED = False
+GO_NEXT = False
 
 #####################################################################################################################
-## Functions
+#####################################################################################################################
+## Threads Functions
 
 def run_camera(mes_pos : Robot, mes_goal: Point, camera : Camera, grid_res=DEFAULT_GRID_RES):
     '''
@@ -109,7 +122,8 @@ def display(env : Environment, path : list, visitedNodes : list, map : Map, grid
                 display = draw_circle(display, (env.goal.x, env.goal.y), grid_res, radius=10, color=(0, 0, 255), thickness=-1)
             
                 #show robot position with green point + arrow
-                display = draw_circle(display, (env.robot.position.x, env.robot.position.y), grid_res, radius=5, color=(0, 255, 0), thickness=-1)
+                circle_pos = (int(env.robot.position.x*grid_res)/grid_res, int(env.robot.position.y*grid_res)/grid_res)
+                display = draw_circle(display, circle_pos, grid_res, radius=5, color=(0, 255, 0), thickness=-1)
                 display = draw_arrow_from_robot(display, env.robot, grid_res)
 
                 #show obstacles with grey points
@@ -127,6 +141,11 @@ def display(env : Environment, path : list, visitedNodes : list, map : Map, grid
                     #show visited nodes with yellow points 
                     for point in visitedNodes:
                         display = draw_circle(display, (point.x, point.y), grid_res, radius=2, color=(0, 200, 200), thickness=-1)
+                
+                #show temporary obstacles detected with proximity sensors
+                for point in temp_obstacles:
+                    display = display = draw_circle(display, (point.x, point.y), grid_res, radius=2, color=(0, 100, 200), thickness=-1)
+
                     
         cv.imshow("Positions", display) 
 
@@ -162,6 +181,7 @@ if __name__ == "__main__":
     visitedNodes = list()           # visitedNodes = list of visited nodes during A* algorithm
     camera = Camera()
     extended_obs = list()           # extended_obs = list of obstacles with extended size of the robot
+    temp_obstacles = list()
 
     # Launch Threads
     camera_thread = threading.Thread(target=run_camera, args=(Mes_car, Mes_goal, camera, grid_res), daemon=True)
@@ -280,6 +300,7 @@ if __name__ == "__main__":
                 continue    
             else : 
                 print("Path finished !")
+                Global_planning = True
                 continue
 
         ## Update motion
@@ -295,6 +316,14 @@ if __name__ == "__main__":
             if obstacle_detected : 
                 motor_L +=  addLeft
                 motor_R +=  addRight
+                position_temp_obstacle(prox_array, env.robot, temp_obstacles)
+                if len(path) > 1 and GO_NEXT:           #update to the next checkpoint 
+                    path.pop(0)
+                    GO_NEXT = False
+                    continue
+            else:
+                GO_NEXT = True   
+                temp_obstacles.clear()             
 
             input = Motors(int(motor_L), int(motor_R))
             # input = Motors(0,0)

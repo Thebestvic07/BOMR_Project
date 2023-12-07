@@ -2,10 +2,10 @@ import math
 import numpy as np
 from .utils.data import *
 
-# Constants
+# PD Constants
 Kp = 100/np.pi
-# Kd = Kp * 0.1
-Kd = 0
+Kd = Kp * 0.1
+# Kd = 0
 
 def compute_angle_error(position, checkpoint, thymio_direction):
   """
@@ -18,12 +18,10 @@ def compute_angle_error(position, checkpoint, thymio_direction):
   """
   goal_angle = np.arctan2( (checkpoint.y - position.y), (checkpoint.x - position.x))
 
-  thymio_direction = -thymio_direction      # Because the y-axis is inverted in the simulation
+  thymio_direction = - thymio_direction    # Because the y-axis is inverted in the simulator  
 
   angle_error = goal_angle - thymio_direction         
   angle_error = (angle_error + np.pi) % (2 * np.pi) - np.pi
-
-  print("goal_angle: ", goal_angle, "thymio_direction: ", thymio_direction, "angle_error: ", angle_error)
 
   return angle_error
 

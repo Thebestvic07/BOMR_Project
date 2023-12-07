@@ -1,3 +1,8 @@
+##########################################################################################################################################
+###################### Description: Class object to interface asynchronous communication with Thymio    ##################################
+##########################################################################################################################################
+
+
 from tdmclient import ClientAsync, aw
 from .data import *
 import numpy as np
@@ -33,6 +38,9 @@ class Thymio:
     
         except:
             print("Connection to Thymio failed!")
+            print("Retrying in 5 seconds...")
+            
+            self.start()
 
     def stop(self):
         """
