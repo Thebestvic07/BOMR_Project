@@ -86,7 +86,6 @@ def convert_path(path, finalpath):
         finalpath.append(pt)
 
 
-
 def calculate_path(env, finalpath, extended_obs, visitedNodes, size_thym, PLOT=False):
     """calls all functions to calculate path
        out: path given in a list of Points 
