@@ -49,7 +49,7 @@ def run_camera(mes_pos : Robot, mes_goal: Point, camera : Camera, grid_res=DEFAU
     Function that updates the global Mes_Robot variable with camera data every 0.1 seconds on average
 
     '''
-    cap = cv2.VideoCapture(0)
+    cap = cv2.VideoCapture(1, cv2.CAP_DSHOW) #cv2.VideoCapture(0)
 
     ret, frame = cap.read()
     camera.update(ret)
@@ -105,7 +105,7 @@ def update_thymio(thymio : Thymio):
 
 #####################################################################################################################
 
-def display(env : Environment, path : list, visitedNodes : list, map : Map, grid_res=DEFAULT_GRID_RES):
+def display(env : Environment, path : list, visitedNodes : list, grid_res=DEFAULT_GRID_RES):
     '''
     Function that displays the current state of the robot and the goal on the screen
     '''
@@ -144,7 +144,7 @@ def display(env : Environment, path : list, visitedNodes : list, map : Map, grid
                 
                 #show temporary obstacles detected with proximity sensors
                 for point in temp_obstacles:
-                    display = display = draw_circle(display, (point.x, point.y), grid_res, radius=2, color=(0, 100, 200), thickness=-1)
+                    display = display = draw_circle(display, (point.x, point.y), grid_res, radius=3, color=(0, 100, 200), thickness=-1)
 
                     
         cv.imshow("Positions", display) 

@@ -8,7 +8,7 @@ from .utils.data import *
 def is_black_cell(image):
     # Know if the grid cell contains more than 1/8 pixels who are black
     image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-    _, binary_mask = cv2.threshold(image, 60, 255, cv2.THRESH_BINARY)
+    _, binary_mask = cv2.threshold(image, 115, 255, cv2.THRESH_BINARY)
 
     # Calculate the percentage of black pixels in the image
     total_pixels = image.size
@@ -372,7 +372,8 @@ def projected_image(frame, arucos, width, height):
 def apply_grid_to_camera(default_grid_res=25):
 
     # Open the camera
-    cap = cv2.VideoCapture(0)  # Use 0 for the default camera
+    cap = cv2.VideoCapture(1, cv2.CAP_DSHOW) #cv2.VideoCapture(0)  # Use 0 for the default camera
+    
 
     print("Calibrating Map...")
 
@@ -423,7 +424,7 @@ def replace_black():
 ######################################################### MAIN FOR CALIBRATION & TESTING   ###########################################################  
 
 if __name__ == "__main__":
-    cap = cv2.VideoCapture(0)
+    cap = cv2.VideoCapture(1, cv2.CAP_DSHOW)
 
     last_known_goal_pos = (0, 0)
     robot_pos = (0, 0)
